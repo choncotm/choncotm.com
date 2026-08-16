@@ -1,0 +1,32 @@
+body {
+  line-height: 1.6;
+}
+main {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 3rem 1.5rem 5rem;
+}
+h1 {
+  font-size: 1.6rem;
+  font-weight: 600;
+}
+h2 {
+  font-size: 1.15rem;
+  font-weight: 600;
+  margin-top: 2.2rem;
+}
+p, li {
+  color: #cfcfcf;
+}
+a {
+  color: #7db4ff;
+}
+.updated {
+  color: #8a8a8a;
+  font-size: 0.9rem;
+}
+.lang-switch {
+  margin-top: 2.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #2a2a2c;
+}
