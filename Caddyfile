@@ -1,0 +1,8 @@
+{
+	email choncotm77@gmail.com
+}
+
+choncotm.com, www.choncotm.com {
+	root * /usr/share/caddy
+	file_server
+}
