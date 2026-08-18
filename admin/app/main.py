@@ -40,6 +40,9 @@ AVAILABLE_RESOURCES = [
 ]
 RESOURCE_KEYS = {key for key, _label in AVAILABLE_RESOURCES}
 RESOURCE_LABELS = dict(AVAILABLE_RESOURCES)
+RESOURCE_URLS = {
+    "amazon_price_tracker": "/admin/bots/amazon-price-tracker",
+}
 
 serializer = URLSafeTimedSerializer(SESSION_SECRET)
 
@@ -280,7 +283,27 @@ def require_resource(request: Request, key: str) -> User | None:
 
 
 def landing_url(user: User) -> str:
-    return "/admin/stats" if user.is_owner else "/admin/home"
+    return "/admin/home"
+
+
+def available_dashboards(user: User) -> list[dict]:
+    dashboards = []
+    if user.is_owner:
+        dashboards += [
+            {"url": "/admin/stats", "label": "Stats du site"},
+            {"url": "/admin/history", "label": "Historique"},
+            {"url": "/admin/reports", "label": "Rapports"},
+            {"url": "/admin/users", "label": "Comptes"},
+        ]
+        resource_keys = RESOURCE_KEYS
+    else:
+        resource_keys = set(user.resources or [])
+    dashboards += [
+        {"url": RESOURCE_URLS[key], "label": label}
+        for key, label in AVAILABLE_RESOURCES
+        if key in resource_keys
+    ]
+    return dashboards
 
 
 @app.get("/admin", response_class=HTMLResponse)
@@ -348,17 +371,10 @@ def home_page(request: Request):
     user = current_user(request)
     if not user:
         return RedirectResponse("/admin", status_code=303)
-    if user.is_owner:
-        return RedirectResponse("/admin/stats", status_code=303)
 
-    dashboards = [
-        {"url": "/admin/bots/amazon-price-tracker", "label": RESOURCE_LABELS[key]}
-        for key in (user.resources or [])
-        if key in RESOURCE_KEYS
-    ]
     return templates.TemplateResponse(
         "home.html",
-        {"request": request, "user": user, "dashboards": dashboards},
+        {"request": request, "user": user, "dashboards": available_dashboards(user)},
     )
 
 

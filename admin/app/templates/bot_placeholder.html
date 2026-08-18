@@ -52,7 +52,8 @@
   <div class="top">
     <h1>{{ title }}</h1>
     <div class="links">
-      {% if user.is_owner %}<a href="/admin/stats">Stats du site</a>{% else %}<a href="/admin/home">&larr; Accueil</a>{% endif %}
+      <a href="/admin/home">&larr; Accueil</a>
+      {% if user.is_owner %}<a href="/admin/stats">Stats du site</a>{% endif %}
       <a href="/admin/logout">Déconnexion</a>
     </div>
   </div>
