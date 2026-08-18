@@ -308,7 +308,7 @@ a {
 /* scrollable "carousel": shows ~3 projects, scroll for the rest */
 
 .tree-scroll {
-  max-height: 9.5rem;
+  max-height: 8.8rem;
   overflow-y: auto;
   scroll-snap-type: y proximity;
   padding-right: 0.3rem;
@@ -333,7 +333,7 @@ a {
 
 .scroll-hint {
   text-align: center;
-  margin: 0.5rem 0 0;
+  margin: 0 0 0.5rem;
 }
 
 /* --- scroll reveal --- */
