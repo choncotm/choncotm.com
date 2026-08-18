@@ -35,8 +35,15 @@ services:
     depends_on:
       stats-db:
         condition: service_healthy
+    networks:
+      - default
+      - bot-stats-net
 
 volumes:
   caddy_data:
   caddy_config:
   stats_db_data:
+
+networks:
+  bot-stats-net:
+    external: true

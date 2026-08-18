@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ title }} — choncotm.com</title>
+<style>
+  body {
+    background: #0a0a0a;
+    color: #ece7db;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    margin: 0;
+    padding: 2.5rem 1.5rem 4rem;
+  }
+  .top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 900px;
+    margin: 0 auto 2rem;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+  }
+  h1 {
+    font-weight: 500;
+    font-size: 1.4rem;
+    margin: 0;
+  }
+  .links {
+    display: flex;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+  }
+  .links a {
+    color: #a39d8f;
+    font-size: 0.8rem;
+    text-decoration: none;
+    border: 1px solid rgba(201, 162, 39, 0.25);
+    border-radius: 2px;
+    padding: 0.35rem 0.7rem;
+    transition: color 0.15s ease, border-color 0.15s ease;
+  }
+  .links a:hover {
+    color: #c9a227;
+    border-color: #c9a227;
+  }
+  .unavailable {
+    max-width: 900px;
+    margin: 0 auto;
+    background: #111110;
+    border: 1px solid rgba(201, 162, 39, 0.35);
+    border-radius: 4px;
+    padding: 2rem;
+    color: #a39d8f;
+    font-size: 0.95rem;
+  }
+  .cards {
+    display: flex;
+    gap: 1rem;
+    max-width: 900px;
+    margin: 0 auto 2.5rem;
+    flex-wrap: wrap;
+  }
+  .card {
+    background: #111110;
+    border: 1px solid rgba(201, 162, 39, 0.35);
+    padding: 1.2rem 1.5rem;
+    border-radius: 4px;
+    flex: 1;
+    min-width: 160px;
+  }
+  .card .n {
+    font-size: 1.8rem;
+    font-weight: 600;
+    color: #c9a227;
+  }
+  .card .n.drop {
+    color: #7fd88f;
+  }
+  .card .n.rise {
+    color: #ff8a8a;
+  }
+  .card .l {
+    font-size: 0.8rem;
+    color: #a39d8f;
+    margin-top: 0.3rem;
+  }
+  h2 {
+    max-width: 900px;
+    margin: 0 auto 0.8rem;
+    font-size: 1rem;
+    font-weight: 500;
+  }
+  table {
+    width: 100%;
+    max-width: 900px;
+    margin: 0 auto 2.5rem;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+  }
+  th, td {
+    text-align: left;
+    padding: 0.5rem 0.7rem;
+    border-bottom: 1px solid rgba(201, 162, 39, 0.15);
+  }
+  th {
+    color: #a39d8f;
+    font-weight: 500;
+  }
+  td.empty {
+    color: #6a655c;
+  }
+  .drop {
+    color: #7fd88f;
+  }
+  .rise {
+    color: #ff8a8a;
+  }
+</style>
+</head>
+<body>
+  <div class="top">
+    <h1>{{ title }}</h1>
+    <div class="links">
+      <a href="/admin/home">&larr; Accueil</a>
+      {% if user.is_owner %}<a href="/admin/stats">Stats du site</a>{% endif %}
+      <a href="/">Voir le site</a>
+      <a href="/admin/logout">Déconnexion</a>
+    </div>
+  </div>
+
+  {% if not stats %}
+  <div class="unavailable">
+    Service de stats indisponible pour le moment — réessaie plus tard.
+  </div>
+  {% else %}
+
+  <div class="cards">
+    <div class="card"><div class="n">{{ stats.total_users }}</div><div class="l">Utilisateurs totaux</div></div>
+    <div class="card"><div class="n">{{ stats.new_users_30d }}</div><div class="l">Nouveaux utilisateurs (30j)</div></div>
+    <div class="card"><div class="n">{{ stats.total_tracks }}</div><div class="l">Produits suivis</div></div>
+    <div class="card"><div class="n">{{ stats.new_tracks_30d }}</div><div class="l">Nouveaux produits suivis (30j)</div></div>
+    <div class="card"><div class="n drop">{{ stats.price_drops_30d }}</div><div class="l">Baisses de prix (30j)</div></div>
+    <div class="card"><div class="n rise">{{ stats.price_rises_30d }}</div><div class="l">Hausses de prix (30j)</div></div>
+  </div>
+
+  <h2>Derniers changements de prix</h2>
+  <table>
+    <tr><th>Produit</th><th>Ancien prix</th><th>Nouveau prix</th><th>Date</th></tr>
+    {% for c in stats.recent_changes %}
+    <tr>
+      <td>{{ c.title }}</td>
+      <td>{{ "%.2f"|format(c.old_price) }}</td>
+      <td class="{{ 'drop' if c.new_price < c.old_price else 'rise' }}">{{ "%.2f"|format(c.new_price) }}</td>
+      <td>{{ c.checked_at }}</td>
+    </tr>
+    {% else %}
+    <tr><td class="empty" colspan="4">Aucune donnée pour l'instant.</td></tr>
+    {% endfor %}
+  </table>
+
+  <h2>Rapports mensuels</h2>
+  <table>
+    <tr><th>Mois</th><th>Utilisateurs</th><th>Nouveaux</th><th>Produits suivis</th><th>Nouveaux</th><th>Baisses</th><th>Hausses</th></tr>
+    {% for r in stats.monthly %}
+    <tr>
+      <td>{{ r.period_label }}</td>
+      <td>{{ r.total_users }}</td>
+      <td>{{ r.new_users }}</td>
+      <td>{{ r.total_tracks }}</td>
+      <td>{{ r.new_tracks }}</td>
+      <td class="drop">{{ r.price_drops }}</td>
+      <td class="rise">{{ r.price_rises }}</td>
+    </tr>
+    {% else %}
+    <tr><td class="empty" colspan="7">Aucun rapport pour l'instant — généré automatiquement chaque 1er du mois.</td></tr>
+    {% endfor %}
+  </table>
+
+  <h2>Rapports annuels</h2>
+  <table>
+    <tr><th>Année</th><th>Utilisateurs</th><th>Nouveaux</th><th>Produits suivis</th><th>Nouveaux</th><th>Baisses</th><th>Hausses</th></tr>
+    {% for r in stats.yearly %}
+    <tr>
+      <td>{{ r.period_label }}</td>
+      <td>{{ r.total_users }}</td>
+      <td>{{ r.new_users }}</td>
+      <td>{{ r.total_tracks }}</td>
+      <td>{{ r.new_tracks }}</td>
+      <td class="drop">{{ r.price_drops }}</td>
+      <td class="rise">{{ r.price_rises }}</td>
+    </tr>
+    {% else %}
+    <tr><td class="empty" colspan="7">Aucun rapport pour l'instant — généré automatiquement chaque 1er janvier.</td></tr>
+    {% endfor %}
+  </table>
+
+  {% endif %}
+</body>
+</html>

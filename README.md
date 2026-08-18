@@ -62,7 +62,13 @@ Accounts live in the `users` table (username, bcrypt password hash, `is_owner` f
 
 - The **owner** (`is_owner=True`) can see everything: site stats/history/reports, `/admin/users`, and every per-resource dashboard.
 - **Collaborators** have no `is_owner` flag and only see the dashboards for the resources granted to them (e.g. `amazon_price_tracker` for the Amazon Price Tracker bot, shared with visualbynoah) via `/admin/home`. They cannot see the site's own analytics.
-- `/admin/bots/amazon-price-tracker` is currently a placeholder page — the bot's stats live in its own separate project/database and aren't wired up yet.
+- `/admin/bots/amazon-price-tracker` shows real stats (users, tracked
+  products, price drops/rises, recent changes, monthly/yearly reports)
+  fetched over HTTP from a small internal stats API running in the
+  `amazon-price-tracker-bot` project — see that project's README for how
+  it's wired up (shared Docker network, `BOT_STATS_API_URL`/
+  `BOT_STATS_TOKEN` env vars here). If that service is unreachable, the
+  page shows a "service indisponible" message instead of erroring.
 
 ## Running locally
 

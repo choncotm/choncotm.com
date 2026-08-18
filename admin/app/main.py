@@ -4,6 +4,7 @@ import time
 from datetime import datetime, timedelta, timezone
 
 import bcrypt
+import httpx
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.cron import CronTrigger
 from fastapi import FastAPI, Form, HTTPException, Request
@@ -28,6 +29,8 @@ ADMIN_USERNAME = os.environ["ADMIN_USERNAME"]
 ADMIN_PASSWORD_HASH = os.environ["ADMIN_PASSWORD_HASH"].encode()
 SESSION_SECRET = os.environ["SESSION_SECRET"]
 DATABASE_URL = os.environ["DATABASE_URL"]
+BOT_STATS_API_URL = os.environ.get("BOT_STATS_API_URL", "")
+BOT_STATS_TOKEN = os.environ.get("BOT_STATS_TOKEN", "")
 
 COOKIE_NAME = "admin_session"
 SESSION_MAX_AGE = 60 * 60  # 1h, enforced server-side regardless of cookie lifetime
@@ -378,17 +381,42 @@ def home_page(request: Request):
     )
 
 
+def fetch_bot_stats() -> dict | None:
+    if not BOT_STATS_API_URL:
+        return None
+    headers = {"X-Internal-Token": BOT_STATS_TOKEN}
+    try:
+        with httpx.Client(base_url=BOT_STATS_API_URL, timeout=5.0) as client:
+            live = client.get("/stats/live", headers=headers)
+            reports = client.get("/stats/reports", headers=headers)
+        if live.status_code != 200 or reports.status_code != 200:
+            return None
+        return {**live.json(), **reports.json()}
+    except httpx.HTTPError:
+        return None
+
+
 @app.get("/admin/bots/amazon-price-tracker", response_class=HTMLResponse)
 def bot_amazon_price_tracker_page(request: Request):
     user = require_resource(request, "amazon_price_tracker")
     if not user:
         return RedirectResponse("/admin", status_code=303)
+
+    stats = fetch_bot_stats()
+    if stats:
+        for change in stats.get("recent_changes", []):
+            if change.get("checked_at"):
+                change["checked_at"] = datetime.fromisoformat(
+                    change["checked_at"]
+                ).strftime("%d/%m %H:%M")
+
     return templates.TemplateResponse(
-        "bot_placeholder.html",
+        "bot_amazon_price_tracker.html",
         {
             "request": request,
             "user": user,
             "title": "Amazon Price Tracker",
+            "stats": stats,
         },
     )
 
