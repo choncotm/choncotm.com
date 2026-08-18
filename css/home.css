@@ -292,9 +292,25 @@ a {
   margin-top: 1.5rem;
 }
 
+.project-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.8rem;
+}
+
 .project-card h3 {
   font-size: 1.15rem;
-  margin-bottom: 0.8rem;
+  margin-bottom: 0;
+}
+
+.project-date {
+  color: var(--ink-dim);
+  font-size: 0.75rem;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
 }
 
 .project-card p {
