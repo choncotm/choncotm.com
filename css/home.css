@@ -317,7 +317,7 @@ a {
 }
 
 .project-card {
-  border: 1px solid rgba(201, 162, 39, 0.18);
+  border: 2px solid rgba(201, 162, 39, 0.45);
   padding: 2rem;
   text-align: left;
 }
