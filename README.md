@@ -66,7 +66,7 @@ Accounts live in the `users` table (username, bcrypt password hash, `is_owner` f
 
 - The **owner** (`is_owner=True`) can see everything: site stats/history/reports, `/admin/users`, and every per-resource dashboard.
 - **Collaborators** have no `is_owner` flag and only see the dashboards for the resources granted to them (e.g. `amazon_price_tracker` for the Amazon Price Tracker bot, shared with visualbynoah) via `/admin/home`. They cannot see the site's own analytics.
-- `/admin/bots/amazon-price-tracker` shows real stats (users, tracked products, price drops/rises, recent changes, monthly/yearly reports) fetched over HTTP from a small internal stats API running in the `amazon-price-tracker-bot` project — see that project's README for how it's wired up (shared Docker network, `BOT_STATS_API_URL`/`BOT_STATS_TOKEN` env vars here). If that service is unreachable, the page shows a "service indisponible" message instead of erroring.
+- `/admin/bots/amazon-price-tracker` shows real stats (users, tracked products, price drops/rises, recent changes, users by language, weekly/monthly/yearly reports) fetched over HTTP from a small internal stats API running in the `amazon-price-tracker-bot` project — see that project's README for how it's wired up (shared Docker network, `BOT_STATS_API_URL`/`BOT_STATS_TOKEN` env vars here). If that service is unreachable, the page shows a "service indisponible" message instead of erroring.
 
 ### Running locally
 
@@ -142,7 +142,7 @@ Les comptes vivent dans la table `users` (nom d'utilisateur, hash bcrypt du mot 
 
 - Le **propriétaire** (`is_owner=True`) voit tout : stats/historique/rapports du site, `/admin/users`, et chaque dashboard par ressource.
 - Les **collaborateurs** n'ont pas l'indicateur `is_owner` et ne voient que les dashboards des ressources qui leur sont accordées (ex : `amazon_price_tracker` pour le bot Amazon Price Tracker, partagé avec visualbynoah) via `/admin/home`. Ils ne peuvent pas voir les analytics du site lui-même.
-- `/admin/bots/amazon-price-tracker` affiche de vraies stats (utilisateurs, produits suivis, baisses/hausses de prix, changements récents, rapports mensuels/annuels) récupérées en HTTP depuis une petite API de stats interne tournant dans le projet `amazon-price-tracker-bot` — voir le README de ce projet pour le câblage (réseau Docker partagé, variables d'environnement `BOT_STATS_API_URL`/`BOT_STATS_TOKEN` ici). Si ce service est injoignable, la page affiche un message « service indisponible » plutôt que de planter.
+- `/admin/bots/amazon-price-tracker` affiche de vraies stats (utilisateurs, produits suivis, baisses/hausses de prix, changements récents, utilisateurs par langue, rapports hebdomadaires/mensuels/annuels) récupérées en HTTP depuis une petite API de stats interne tournant dans le projet `amazon-price-tracker-bot` — voir le README de ce projet pour le câblage (réseau Docker partagé, variables d'environnement `BOT_STATS_API_URL`/`BOT_STATS_TOKEN` ici). Si ce service est injoignable, la page affiche un message « service indisponible » plutôt que de planter.
 
 ### Lancer en local
 

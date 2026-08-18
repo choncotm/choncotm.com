@@ -144,6 +144,17 @@
     <div class="card"><div class="n rise">{{ stats.price_rises_30d }}</div><div class="l">Hausses de prix (30j)</div></div>
   </div>
 
+  <h2>Utilisateurs par langue</h2>
+  <table>
+    <tr><th>Langue</th><th>Utilisateurs</th></tr>
+    {% set lang_labels = {"fr": "Français", "en": "English", "pt": "Português", "es": "Español", "ru": "Русский", "de": "Deutsch"} %}
+    {% for code, n in stats.languages.items()|sort(attribute="1", reverse=true) %}
+    <tr><td>{{ lang_labels.get(code, code) }}</td><td>{{ n }}</td></tr>
+    {% else %}
+    <tr><td class="empty" colspan="2">Aucune donnée pour l'instant.</td></tr>
+    {% endfor %}
+  </table>
+
   <h2>Derniers changements de prix</h2>
   <table>
     <tr><th>Produit</th><th>Ancien prix</th><th>Nouveau prix</th><th>Date</th></tr>
@@ -156,6 +167,24 @@
     </tr>
     {% else %}
     <tr><td class="empty" colspan="4">Aucune donnée pour l'instant.</td></tr>
+    {% endfor %}
+  </table>
+
+  <h2>Rapports hebdomadaires</h2>
+  <table>
+    <tr><th>Semaine</th><th>Utilisateurs</th><th>Nouveaux</th><th>Produits suivis</th><th>Nouveaux</th><th>Baisses</th><th>Hausses</th></tr>
+    {% for r in stats.weekly %}
+    <tr>
+      <td>{{ r.period_label }}</td>
+      <td>{{ r.total_users }}</td>
+      <td>{{ r.new_users }}</td>
+      <td>{{ r.total_tracks }}</td>
+      <td>{{ r.new_tracks }}</td>
+      <td class="drop">{{ r.price_drops }}</td>
+      <td class="rise">{{ r.price_rises }}</td>
+    </tr>
+    {% else %}
+    <tr><td class="empty" colspan="7">Aucun rapport pour l'instant — généré automatiquement chaque lundi dans la nuit.</td></tr>
     {% endfor %}
   </table>
 
