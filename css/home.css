@@ -140,6 +140,18 @@ a {
   letter-spacing: 0.06em;
 }
 
+.diploma {
+  font-family: var(--serif);
+  color: var(--ink);
+  font-size: 0.95rem;
+  letter-spacing: 0.02em;
+  margin: 0 0 0.5rem;
+}
+
+.nationality {
+  margin: 0 0 1.3rem;
+}
+
 .tagline {
   color: var(--ink-dim);
   font-size: 1rem;
