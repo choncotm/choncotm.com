@@ -10,6 +10,8 @@ I needed a real, professional home online: a place that presents who I am and wh
 
 A minimal static site (no build step, no framework) with a small client-side i18n layer, deployed behind [Caddy](https://caddyserver.com/) in Docker for automatic HTTPS. Easy to edit, fast to load, cheap to run.
 
+Hosted on an OVH VPS, running as one of several Docker containers on that server alongside my other projects (each isolated in its own container).
+
 ## Structure
 
 ```
