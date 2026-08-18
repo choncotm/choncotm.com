@@ -12,6 +12,12 @@ A minimal static site (no build step, no framework) with a small client-side i18
 
 Hosted on an OVH VPS, running as one of several Docker containers on that server alongside my other projects (each isolated in its own container).
 
+## Stack
+
+- Static HTML/CSS/vanilla JS
+- [Caddy](https://caddyserver.com/) for automatic HTTPS
+- Docker, deployed on an OVH VPS
+
 ## Structure
 
 ```
