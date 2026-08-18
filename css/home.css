@@ -136,7 +136,7 @@ a {
 }
 
 .hero h1 {
-  font-size: clamp(2.5rem, 6vw, 4rem);
+  font-size: clamp(3rem, 7.5vw, 5rem);
   letter-spacing: 0.06em;
 }
 
@@ -154,7 +154,7 @@ a {
 
 .tagline {
   color: var(--ink-dim);
-  font-size: 1rem;
+  font-size: 1.2rem;
   max-width: 30em;
   line-height: 1.7;
 }
