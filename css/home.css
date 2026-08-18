@@ -320,7 +320,8 @@ a {
   border-bottom-color: var(--gold);
 }
 
-.private-tag {
+.private-tag,
+.public-tag {
   color: var(--ink-dim);
   font-size: 0.8em;
 }
