@@ -10,6 +10,13 @@ choncotm.com {
 	root * /usr/share/caddy
 	file_server
 
+	header {
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		X-Frame-Options "SAMEORIGIN"
+		Permissions-Policy "geolocation=(), camera=(), microphone=()"
+	}
+
 	@static path *.css *.js *.png *.jpg *.svg *.ico
 	header @static Cache-Control "no-cache"
 
@@ -18,6 +25,7 @@ choncotm.com {
 	}
 
 	handle /admin* {
+		header Cache-Control "no-store"
 		reverse_proxy stats-api:8000
 	}
 }
