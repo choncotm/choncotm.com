@@ -206,31 +206,31 @@ def generate_report(period_type: str, start: datetime, end: datetime, label: str
 
 
 def run_monthly_report() -> None:
+    # Runs on the last day of the month, so "this month" is the period being closed out.
     now = datetime.now(timezone.utc)
     this_month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-    if this_month_start.month == 1:
-        prev_month_start = this_month_start.replace(
-            year=this_month_start.year - 1, month=12
-        )
+    if this_month_start.month == 12:
+        next_month_start = this_month_start.replace(year=this_month_start.year + 1, month=1)
     else:
-        prev_month_start = this_month_start.replace(month=this_month_start.month - 1)
-    label = prev_month_start.strftime("%Y-%m")
-    generate_report("monthly", prev_month_start, this_month_start, label)
+        next_month_start = this_month_start.replace(month=this_month_start.month + 1)
+    label = this_month_start.strftime("%Y-%m")
+    generate_report("monthly", this_month_start, next_month_start, label)
 
 
 def run_yearly_report() -> None:
+    # Runs on the last day of the year (Dec 31), so "this year" is the period being closed out.
     now = datetime.now(timezone.utc)
     this_year_start = now.replace(
         month=1, day=1, hour=0, minute=0, second=0, microsecond=0
     )
-    prev_year_start = this_year_start.replace(year=this_year_start.year - 1)
-    label = str(prev_year_start.year)
-    generate_report("yearly", prev_year_start, this_year_start, label)
+    next_year_start = this_year_start.replace(year=this_year_start.year + 1)
+    label = str(this_year_start.year)
+    generate_report("yearly", this_year_start, next_year_start, label)
 
 
 scheduler = BackgroundScheduler(timezone="UTC")
-scheduler.add_job(run_monthly_report, CronTrigger(day=1, hour=0, minute=5))
-scheduler.add_job(run_yearly_report, CronTrigger(month=1, day=1, hour=0, minute=10))
+scheduler.add_job(run_monthly_report, CronTrigger(day="last", hour=23, minute=50))
+scheduler.add_job(run_yearly_report, CronTrigger(month=12, day=31, hour=23, minute=55))
 scheduler.start()
 
 _failed_attempts: dict[str, tuple[int, float]] = {}
@@ -413,11 +413,11 @@ def fetch_bot_stats() -> dict | None:
         return None
 
 
-def report_pdf_bytes(title: str, rows: list[tuple[str, str]]) -> bytes:
+def table_pdf_bytes(title: str, headers: list[str], rows: list[list[str]]) -> bytes:
     buffer = io.BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=A4)
     styles = getSampleStyleSheet()
-    table = Table([("Métrique", "Valeur")] + rows, colWidths=[260, 200])
+    table = Table([headers] + rows, repeatRows=1)
     table.setStyle(
         TableStyle(
             [
@@ -426,7 +426,7 @@ def report_pdf_bytes(title: str, rows: list[tuple[str, str]]) -> bytes:
                 ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
                 ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#dddddd")),
                 ("VALIGN", (0, 0), (-1, -1), "TOP"),
-                ("FONTSIZE", (0, 0), (-1, -1), 9),
+                ("FONTSIZE", (0, 0), (-1, -1), 8),
             ]
         )
     )
@@ -434,26 +434,31 @@ def report_pdf_bytes(title: str, rows: list[tuple[str, str]]) -> bytes:
     return buffer.getvalue()
 
 
-def report_csv_bytes(rows: list[tuple[str, str]]) -> bytes:
+def table_csv_bytes(headers: list[str], rows: list[list[str]]) -> bytes:
     buffer = io.StringIO()
     writer = csv.writer(buffer)
-    writer.writerow(["Métrique", "Valeur"])
+    writer.writerow(headers)
     writer.writerows(rows)
     return buffer.getvalue().encode("utf-8-sig")  # BOM so Excel picks up UTF-8
 
 
-def export_response(period_type: str, period_label: str, fmt: str, source: str, title: str, rows: list[tuple[str, str]]):
+def table_export_response(filename_base: str, fmt: str, title: str, headers: list[str], rows: list[list[str]]):
     if fmt == "pdf":
-        content = report_pdf_bytes(title, rows)
+        content = table_pdf_bytes(title, headers, rows)
         media_type = "application/pdf"
     else:
-        content = report_csv_bytes(rows)
+        content = table_csv_bytes(headers, rows)
         media_type = "text/csv"
-    filename = f"{source}-{period_type}-{period_label}.{fmt}"
     return Response(
         content=content,
         media_type=media_type,
-        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+        headers={"Content-Disposition": f'attachment; filename="{filename_base}.{fmt}"'},
+    )
+
+
+def export_response(period_type: str, period_label: str, fmt: str, source: str, title: str, rows: list[tuple[str, str]]):
+    return table_export_response(
+        f"{source}-{period_type}-{period_label}", fmt, title, ["Métrique", "Valeur"], [list(r) for r in rows]
     )
 
 
@@ -487,6 +492,20 @@ def _find_period(rows: list[dict], period_label: str) -> dict | None:
     return next((r for r in rows if r["period_label"] == period_label), None)
 
 
+BOT_REPORT_TABLE_HEADERS = [
+    "Période", "Utilisateurs", "Nouveaux utilisateurs", "Produits suivis",
+    "Nouveaux produits suivis", "Baisses de prix", "Hausses de prix",
+]
+
+
+def _bot_report_table_row(r: dict) -> list[str]:
+    return [
+        r["period_label"], str(r["total_users"]), str(r["new_users"]),
+        str(r["total_tracks"]), str(r["new_tracks"]), str(r["price_drops"]),
+        str(r["price_rises"]),
+    ]
+
+
 @app.get("/admin/bots/amazon-price-tracker/reports/{period_type}/{period_label}.{fmt}")
 def bot_report_export(request: Request, period_type: str, period_label: str, fmt: str):
     user = require_resource(request, "amazon_price_tracker")
@@ -498,7 +517,16 @@ def bot_report_export(request: Request, period_type: str, period_label: str, fmt
     stats = fetch_bot_stats()
     if not stats:
         raise HTTPException(status_code=503, detail="Service de stats indisponible")
-    report = _find_period(stats.get(period_type, []), period_label)
+    period_reports = stats.get(period_type, [])
+
+    if period_label == "all":
+        rows = [_bot_report_table_row(r) for r in period_reports]
+        title = f"Amazon Price Tracker — rapports {period_type}"
+        return table_export_response(
+            f"amazon-price-tracker-{period_type}-all", fmt, title, BOT_REPORT_TABLE_HEADERS, rows
+        )
+
+    report = _find_period(period_reports, period_label)
     if not report:
         raise HTTPException(status_code=404)
 
@@ -525,9 +553,20 @@ def bot_feature_report_export(request: Request, period_type: str, period_label: 
     stats = fetch_bot_stats()
     if not stats:
         raise HTTPException(status_code=503, detail="Service de stats indisponible")
-    report = _find_period(
-        stats.get("feature_reports", {}).get(period_type, []), period_label
-    )
+    period_reports = stats.get("feature_reports", {}).get(period_type, [])
+
+    if period_label == "all":
+        headers = ["Période"] + list(FEATURE_LABELS.values())
+        rows = [
+            [r["period_label"]] + [str(r["features"].get(k, 0)) for k in FEATURE_LABELS]
+            for r in period_reports
+        ]
+        title = f"Amazon Price Tracker — rapports fonctionnalités {period_type}"
+        return table_export_response(
+            f"amazon-price-tracker-features-{period_type}-all", fmt, title, headers, rows
+        )
+
+    report = _find_period(period_reports, period_label)
     if not report:
         raise HTTPException(status_code=404)
 
@@ -669,13 +708,28 @@ def site_report_export(request: Request, period_type: str, period_label: str, fm
 
     db = SessionLocal()
     try:
-        report = (
-            db.query(Report)
-            .filter_by(period_type=period_type, period_label=period_label)
-            .first()
-        )
+        if period_label == "all":
+            reports = (
+                db.query(Report)
+                .filter_by(period_type=period_type)
+                .order_by(Report.period_label.desc())
+                .all()
+            )
+        else:
+            report = (
+                db.query(Report)
+                .filter_by(period_type=period_type, period_label=period_label)
+                .first()
+            )
     finally:
         db.close()
+
+    if period_label == "all":
+        headers = ["Période", "Pages vues", "Visiteurs uniques"]
+        rows = [[r.period_label, str(r.total_pageviews), str(r.unique_visitors)] for r in reports]
+        title = f"choncotm.com — rapports {period_type}"
+        return table_export_response(f"choncotm-site-{period_type}-all", fmt, title, headers, rows)
+
     if not report:
         raise HTTPException(status_code=404)
 

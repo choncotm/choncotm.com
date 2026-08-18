@@ -125,6 +125,11 @@
     padding: 0.2rem 0.45rem;
     white-space: nowrap;
   }
+  .export-links.standalone {
+    max-width: 900px;
+    margin: -0.4rem auto 1rem;
+    font-size: 0.85rem;
+  }
   .export-links a:hover {
     color: #c9a227;
     border-color: #c9a227;
@@ -193,6 +198,7 @@
   </table>
 
   <h2>Rapports hebdomadaires</h2>
+  <div class="export-links standalone">Tout télécharger : {{ macros.export_links("/admin/bots/amazon-price-tracker/reports", "weekly", "all") }}</div>
   <table>
     <tr><th>Semaine</th><th>Utilisateurs</th><th>Nouveaux</th><th>Produits suivis</th><th>Nouveaux</th><th>Baisses</th><th>Hausses</th><th>Export</th></tr>
     {% for r in stats.weekly %}
@@ -212,6 +218,7 @@
   </table>
 
   <h2>Rapports mensuels</h2>
+  <div class="export-links standalone">Tout télécharger : {{ macros.export_links("/admin/bots/amazon-price-tracker/reports", "monthly", "all") }}</div>
   <table>
     <tr><th>Mois</th><th>Utilisateurs</th><th>Nouveaux</th><th>Produits suivis</th><th>Nouveaux</th><th>Baisses</th><th>Hausses</th><th>Export</th></tr>
     {% for r in stats.monthly %}
@@ -226,11 +233,12 @@
       <td class="export-links">{{ macros.export_links("/admin/bots/amazon-price-tracker/reports", "monthly", r.period_label) }}</td>
     </tr>
     {% else %}
-    <tr><td class="empty" colspan="8">Aucun rapport pour l'instant — généré automatiquement chaque 1er du mois.</td></tr>
+    <tr><td class="empty" colspan="8">Aucun rapport pour l'instant — généré automatiquement le dernier jour de chaque mois.</td></tr>
     {% endfor %}
   </table>
 
   <h2>Rapports annuels</h2>
+  <div class="export-links standalone">Tout télécharger : {{ macros.export_links("/admin/bots/amazon-price-tracker/reports", "yearly", "all") }}</div>
   <table>
     <tr><th>Année</th><th>Utilisateurs</th><th>Nouveaux</th><th>Produits suivis</th><th>Nouveaux</th><th>Baisses</th><th>Hausses</th><th>Export</th></tr>
     {% for r in stats.yearly %}
@@ -245,7 +253,7 @@
       <td class="export-links">{{ macros.export_links("/admin/bots/amazon-price-tracker/reports", "yearly", r.period_label) }}</td>
     </tr>
     {% else %}
-    <tr><td class="empty" colspan="8">Aucun rapport pour l'instant — généré automatiquement chaque 1er janvier.</td></tr>
+    <tr><td class="empty" colspan="8">Aucun rapport pour l'instant — généré automatiquement le 31 décembre.</td></tr>
     {% endfor %}
   </table>
 
@@ -296,6 +304,7 @@
   </table>
 
   <h2>Fonctionnalités — rapports hebdomadaires</h2>
+  <div class="export-links standalone">Tout télécharger : {{ macros.export_links("/admin/bots/amazon-price-tracker/features", "weekly", "all") }}</div>
   <div class="scroll-x">
   <table>
     <tr><th>Semaine</th>{% for key, label in feature_labels.items() %}<th>{{ label }}</th>{% endfor %}<th>Export</th></tr>
@@ -312,6 +321,7 @@
   </div>
 
   <h2>Fonctionnalités — rapports mensuels</h2>
+  <div class="export-links standalone">Tout télécharger : {{ macros.export_links("/admin/bots/amazon-price-tracker/features", "monthly", "all") }}</div>
   <div class="scroll-x">
   <table>
     <tr><th>Mois</th>{% for key, label in feature_labels.items() %}<th>{{ label }}</th>{% endfor %}<th>Export</th></tr>
@@ -328,6 +338,7 @@
   </div>
 
   <h2>Fonctionnalités — rapports annuels</h2>
+  <div class="export-links standalone">Tout télécharger : {{ macros.export_links("/admin/bots/amazon-price-tracker/features", "yearly", "all") }}</div>
   <div class="scroll-x">
   <table>
     <tr><th>Année</th>{% for key, label in feature_labels.items() %}<th>{{ label }}</th>{% endfor %}<th>Export</th></tr>

@@ -58,7 +58,7 @@ Hosted on an OVH VPS, running as one of several Docker containers on that server
 
 The admin session expires after 1 hour server-side regardless of activity, and is a browser-session cookie (no persistent max-age), so closing the browser also logs you out.
 
-`/admin/history` paginates through every recorded event (50 per page) instead of loading it all at once. `/admin/reports` shows monthly and yearly summaries, generated automatically by an in-process scheduler on the 1st of each month and on January 1st.
+`/admin/history` paginates through every recorded event (50 per page) instead of loading it all at once. `/admin/reports` shows monthly and yearly summaries, generated automatically by an in-process scheduler on the last day of each month and on December 31st.
 
 #### Accounts and permissions
 
@@ -134,7 +134,7 @@ Hébergé sur un VPS OVH, tournant comme l'un des multiples conteneurs Docker su
 
 La session admin expire après 1 heure côté serveur quelle que soit l'activité, et c'est un cookie de session navigateur (pas de durée de vie persistante), donc fermer le navigateur déconnecte aussi.
 
-`/admin/history` paginate à travers tous les événements enregistrés (50 par page) plutôt que de tout charger d'un coup. `/admin/reports` affiche des résumés mensuels et annuels, générés automatiquement par un planificateur interne le 1er de chaque mois et le 1er janvier.
+`/admin/history` paginate à travers tous les événements enregistrés (50 par page) plutôt que de tout charger d'un coup. `/admin/reports` affiche des résumés mensuels et annuels, générés automatiquement par un planificateur interne le dernier jour de chaque mois et le 31 décembre.
 
 #### Comptes et permissions
 

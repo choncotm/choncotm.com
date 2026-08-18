@@ -105,6 +105,10 @@
   .export-links {
     margin-top: 0.8rem;
   }
+  .export-links.standalone {
+    max-width: 900px;
+    margin: -0.4rem auto 1rem;
+  }
   .export-links a {
     color: #a39d8f;
     font-size: 0.78rem;
@@ -132,9 +136,10 @@
       <a href="/admin/logout">Déconnexion</a>
     </div>
   </div>
-  <div class="subtitle">Générés automatiquement le 1er de chaque mois (rapport mensuel) et le 1er janvier (rapport annuel).</div>
+  <div class="subtitle">Générés automatiquement le dernier jour de chaque mois (rapport mensuel) et le 31 décembre (rapport annuel).</div>
 
   <h2>Mensuels</h2>
+  <div class="export-links standalone">Tout télécharger : {{ macros.export_links("/admin/reports", "monthly", "all") }}</div>
   {% for r in monthly %}
   <details class="report">
     <summary>
@@ -156,10 +161,11 @@
     <div class="export-links">{{ macros.export_links("/admin/reports", "monthly", r.period_label) }}</div>
   </details>
   {% else %}
-  <p class="empty">Aucun rapport mensuel pour l'instant &mdash; le premier sera généré le 1er du mois prochain.</p>
+  <p class="empty">Aucun rapport mensuel pour l'instant &mdash; le premier sera généré le dernier jour de ce mois.</p>
   {% endfor %}
 
   <h2>Annuels</h2>
+  <div class="export-links standalone">Tout télécharger : {{ macros.export_links("/admin/reports", "yearly", "all") }}</div>
   {% for r in yearly %}
   <details class="report">
     <summary>
@@ -181,7 +187,7 @@
     <div class="export-links">{{ macros.export_links("/admin/reports", "yearly", r.period_label) }}</div>
   </details>
   {% else %}
-  <p class="empty">Aucun rapport annuel pour l'instant &mdash; le premier sera généré le 1er janvier prochain.</p>
+  <p class="empty">Aucun rapport annuel pour l'instant &mdash; le premier sera généré le 31 décembre.</p>
   {% endfor %}
 </body>
 </html>
