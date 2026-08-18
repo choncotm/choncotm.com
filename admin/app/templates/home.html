@@ -24,6 +24,11 @@
     font-size: 1.4rem;
     margin: 0;
   }
+  .links {
+    display: flex;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+  }
   .links a {
     color: #a39d8f;
     font-size: 0.8rem;
@@ -66,7 +71,10 @@
 <body>
   <div class="top">
     <h1>Bonjour, {{ user.username }}</h1>
-    <div class="links"><a href="/admin/logout">Déconnexion</a></div>
+    <div class="links">
+      <a href="/">Voir le site</a>
+      <a href="/admin/logout">Déconnexion</a>
+    </div>
   </div>
 
   <div class="dashboards">
