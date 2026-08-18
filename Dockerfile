@@ -6,3 +6,7 @@ COPY css/ /usr/share/caddy/css/
 COPY js/ /usr/share/caddy/js/
 COPY img/ /usr/share/caddy/img/
 COPY amazon-price-tracker/ /usr/share/caddy/amazon-price-tracker/
+COPY mentions-legales/ /usr/share/caddy/mentions-legales/
+COPY politique-de-confidentialite/ /usr/share/caddy/politique-de-confidentialite/
+COPY robots.txt /usr/share/caddy/robots.txt
+COPY sitemap.xml /usr/share/caddy/sitemap.xml
