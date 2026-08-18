@@ -143,7 +143,7 @@ a {
 .diploma {
   font-family: var(--serif);
   color: var(--ink);
-  font-size: 0.95rem;
+  font-size: 1.15rem;
   letter-spacing: 0.02em;
   margin: 0 0 0.5rem;
 }
