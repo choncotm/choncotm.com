@@ -48,11 +48,13 @@ LOCKOUT_SECONDS = 300
 # key -> human label, shown as checkboxes on /admin/users
 AVAILABLE_RESOURCES = [
     ("amazon_price_tracker", "Amazon Price Tracker — bot Telegram"),
+    ("site_stats", "Stats du site — choncotm.com"),
 ]
 RESOURCE_KEYS = {key for key, _label in AVAILABLE_RESOURCES}
 RESOURCE_LABELS = dict(AVAILABLE_RESOURCES)
 RESOURCE_URLS = {
     "amazon_price_tracker": "/admin/bots/amazon-price-tracker",
+    "site_stats": "/admin/stats",
 }
 
 FEATURE_LABELS = {
@@ -326,7 +328,7 @@ def available_dashboards(user: User) -> list[dict]:
             {"url": "/admin/reports", "label": "Rapports"},
             {"url": "/admin/users", "label": "Comptes"},
         ]
-        resource_keys = RESOURCE_KEYS
+        resource_keys = RESOURCE_KEYS - {"site_stats"}  # already listed above, avoid a duplicate
     else:
         resource_keys = set(user.resources or [])
     dashboards += [
@@ -817,16 +819,15 @@ def export_all_zip(request: Request):
         return RedirectResponse("/admin", status_code=303)
 
     files: dict[str, bytes] = {}
+    granted = RESOURCE_KEYS if user.is_owner else set(user.resources or [])
 
-    if user.is_owner:
+    if "site_stats" in granted:
         headers = ["Période", "Pages vues", "Visiteurs uniques"]
         for period_type in ("monthly", "yearly"):
             rows = _site_report_table(period_type)
             title = f"choncotm.com — rapports {period_type}"
             files[f"site-{period_type}.csv"] = table_csv_bytes(headers, rows)
             files[f"site-{period_type}.pdf"] = table_pdf_bytes(title, headers, rows)
-
-    granted = RESOURCE_KEYS if user.is_owner else set(user.resources or [])
     if "amazon_price_tracker" in granted:
         stats = fetch_bot_stats()
         if stats:
@@ -869,7 +870,8 @@ def export_all_zip(request: Request):
 
 @app.get("/admin/stats", response_class=HTMLResponse)
 def stats_page(request: Request):
-    if not require_owner(request):
+    user = require_resource(request, "site_stats")
+    if not user:
         return RedirectResponse("/admin", status_code=303)
 
     since = datetime.now(timezone.utc) - timedelta(days=30)
@@ -931,6 +933,7 @@ def stats_page(request: Request):
             "top_clicks": top_clicks,
             "recent": recent,
             "charts": charts,
+            "user": user,
         },
     )
 
@@ -940,7 +943,8 @@ HISTORY_PAGE_SIZE = 50
 
 @app.get("/admin/history", response_class=HTMLResponse)
 def history_page(request: Request, page: int = 1):
-    if not require_owner(request):
+    user = require_resource(request, "site_stats")
+    if not user:
         return RedirectResponse("/admin", status_code=303)
 
     page = max(page, 1)
@@ -969,13 +973,15 @@ def history_page(request: Request, page: int = 1):
             "page": page,
             "total_pages": total_pages,
             "total": total,
+            "user": user,
         },
     )
 
 
 @app.get("/admin/reports", response_class=HTMLResponse)
 def reports_page(request: Request):
-    if not require_owner(request):
+    user = require_resource(request, "site_stats")
+    if not user:
         return RedirectResponse("/admin", status_code=303)
 
     db = SessionLocal()
@@ -994,13 +1000,14 @@ def reports_page(request: Request):
             "monthly": monthly,
             "yearly": yearly,
             "charts": build_site_charts(reports),
+            "user": user,
         },
     )
 
 
 @app.get("/admin/reports/{period_type}/{period_label}.{fmt}")
 def site_report_export(request: Request, period_type: str, period_label: str, fmt: str):
-    if not require_owner(request):
+    if not require_resource(request, "site_stats"):
         return RedirectResponse("/admin", status_code=303)
     if fmt not in ("pdf", "csv"):
         raise HTTPException(status_code=404)

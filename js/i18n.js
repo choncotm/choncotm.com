@@ -27,6 +27,8 @@ const translations = {
     "projects.public": "(public)",
     "projects.privacyPolicy": "Politique de confidentialité",
     "contact.heading": "Contact",
+    "footer.legal": "Mentions légales",
+    "footer.privacy": "Politique de confidentialité",
   },
   en: {
     "nav.home": "Home",
@@ -56,6 +58,8 @@ const translations = {
     "projects.public": "(public)",
     "projects.privacyPolicy": "Privacy policy",
     "contact.heading": "Contact",
+    "footer.legal": "Legal notice",
+    "footer.privacy": "Privacy policy",
   },
   pt: {
     "nav.home": "Início",
@@ -85,6 +89,8 @@ const translations = {
     "projects.public": "(público)",
     "projects.privacyPolicy": "Política de privacidade",
     "contact.heading": "Contacto",
+    "footer.legal": "Aviso legal",
+    "footer.privacy": "Política de privacidade",
   },
   es: {
     "nav.home": "Inicio",
@@ -114,6 +120,8 @@ const translations = {
     "projects.public": "(público)",
     "projects.privacyPolicy": "Política de privacidad",
     "contact.heading": "Contacto",
+    "footer.legal": "Aviso legal",
+    "footer.privacy": "Política de privacidad",
   },
   ru: {
     "nav.home": "Главная",
@@ -143,6 +151,8 @@ const translations = {
     "projects.public": "(публичный)",
     "projects.privacyPolicy": "Политика конфиденциальности",
     "contact.heading": "Контакты",
+    "footer.legal": "Юридическая информация",
+    "footer.privacy": "Политика конфиденциальности",
   },
   de: {
     "nav.home": "Start",
@@ -172,6 +182,8 @@ const translations = {
     "projects.public": "(öffentlich)",
     "projects.privacyPolicy": "Datenschutzerklärung",
     "contact.heading": "Kontakt",
+    "footer.legal": "Impressum",
+    "footer.privacy": "Datenschutzerklärung",
   },
 };
 

@@ -132,7 +132,7 @@
       <a href="/admin/home">Accueil</a>
       <a href="/admin/history">Historique</a>
       <a href="/admin/reports">Rapports</a>
-      <a href="/admin/users">Comptes</a>
+      {% if user.is_owner %}<a href="/admin/users">Comptes</a>{% endif %}
       <a href="/">Voir le site</a>
       <a href="/admin/logout">Déconnexion</a>
     </div>

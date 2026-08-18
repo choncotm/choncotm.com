@@ -481,6 +481,23 @@ a {
   letter-spacing: 0.04em;
 }
 
+.site-footer .legal-links {
+  margin-top: 0.6rem;
+  display: flex;
+  justify-content: center;
+  gap: 1.2rem;
+}
+
+.site-footer .legal-links a {
+  color: var(--ink-dim);
+  font-size: 0.75rem;
+  text-decoration: none;
+}
+
+.site-footer .legal-links a:hover {
+  color: var(--gold);
+}
+
 @media (max-width: 900px) {
   .navbar {
     padding: 0.9rem 1.2rem;
