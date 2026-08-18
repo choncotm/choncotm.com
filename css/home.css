@@ -220,7 +220,15 @@ a {
   cursor: pointer;
   list-style: none;
   position: relative;
+  display: flex;
+  align-items: baseline;
+  gap: 0.45rem;
   padding-right: 2.2rem;
+}
+
+.hint-tag {
+  color: var(--ink-dim);
+  font-size: 0.8em;
 }
 
 .tree summary::-webkit-details-marker {

@@ -2,6 +2,7 @@ const translations = {
   fr: {
     "nav.home": "Accueil",
     "nav.projects": "Projets",
+    "nav.projectsHint": "(cliquer)",
     "nav.contact": "Contact",
     "hero.tagline": "Développeur indépendant — cybersécurité, services, logiciels, petits outils, bots et sites, faits avec soin.",
     "projects.heading": "Projets",
@@ -21,6 +22,7 @@ const translations = {
   en: {
     "nav.home": "Home",
     "nav.projects": "Projects",
+    "nav.projectsHint": "(click)",
     "nav.contact": "Contact",
     "hero.tagline": "Independent developer — cybersecurity, services, software, small tools, bots and websites, made with care.",
     "projects.heading": "Projects",
@@ -40,6 +42,7 @@ const translations = {
   pt: {
     "nav.home": "Início",
     "nav.projects": "Projetos",
+    "nav.projectsHint": "(clica)",
     "nav.contact": "Contacto",
     "hero.tagline": "Programador independente — cibersegurança, serviços, software, pequenas ferramentas, bots e sites, feitos com cuidado.",
     "projects.heading": "Projetos",
@@ -59,6 +62,7 @@ const translations = {
   es: {
     "nav.home": "Inicio",
     "nav.projects": "Proyectos",
+    "nav.projectsHint": "(clic)",
     "nav.contact": "Contacto",
     "hero.tagline": "Desarrollador independiente — ciberseguridad, servicios, software, pequeñas herramientas, bots y sitios, hechos con cuidado.",
     "projects.heading": "Proyectos",
@@ -78,6 +82,7 @@ const translations = {
   ru: {
     "nav.home": "Главная",
     "nav.projects": "Проекты",
+    "nav.projectsHint": "(нажми)",
     "nav.contact": "Контакты",
     "hero.tagline": "Независимый разработчик — кибербезопасность, услуги, программное обеспечение, небольшие инструменты, боты и сайты, сделанные с заботой.",
     "projects.heading": "Проекты",
@@ -97,6 +102,7 @@ const translations = {
   de: {
     "nav.home": "Start",
     "nav.projects": "Projekte",
+    "nav.projectsHint": "(klicken)",
     "nav.contact": "Kontakt",
     "hero.tagline": "Unabhängiger Entwickler — Cybersicherheit, Dienstleistungen, Software, kleine Tools, Bots und Websites, mit Sorgfalt gemacht.",
     "projects.heading": "Projekte",
