@@ -4,14 +4,57 @@ html, body {
   align-items: center;
   justify-content: center;
   background: #08090a;
+  background-image:
+    radial-gradient(ellipse at center, rgba(57, 255, 136, 0.05), transparent 70%);
+}
+
+.terminal-window {
+  width: min(640px, 92vw);
+  border-radius: 8px;
+  overflow: hidden;
+  background: #1a1b1e;
+  border: 1px solid #2c2d31;
+  box-shadow:
+    0 20px 60px rgba(0, 0, 0, 0.55),
+    0 0 0 1px rgba(255, 255, 255, 0.02);
+}
+
+.titlebar {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.65rem 0.9rem;
+  background: #232428;
+  border-bottom: 1px solid #2c2d31;
+}
+
+.dot {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.dot-red { background: #ff5f57; }
+.dot-yellow { background: #febc2e; }
+.dot-green { background: #28c840; }
+
+.titlebar-label {
+  flex: 1;
+  text-align: center;
+  margin-right: 3.3rem;
+  font-family: ui-monospace, "SFMono-Regular", "JetBrains Mono", Menlo, Consolas, monospace;
+  font-size: 0.8rem;
+  color: #8a8d93;
 }
 
 .term {
   font-family: ui-monospace, "SFMono-Regular", "JetBrains Mono", Menlo, Consolas, "Liberation Mono", monospace;
-  font-size: 1.05rem;
-  line-height: 1.9;
-  padding: 1.5rem;
+  font-size: 0.95rem;
+  line-height: 1.85;
+  padding: 1.4rem 1.3rem 1.7rem;
   color: #39ff88;
+  text-shadow: 0 0 6px rgba(57, 255, 136, 0.25);
 }
 
 .line {
@@ -23,12 +66,40 @@ html, body {
   color: #6ee7a8;
 }
 
+.colon,
+.dollar {
+  color: #6a6d73;
+}
+
+.path {
+  color: #7db4ff;
+}
+
+.dollar {
+  margin-right: 0.35em;
+}
+
+.typed {
+  display: inline-block;
+  overflow: hidden;
+  white-space: nowrap;
+  vertical-align: bottom;
+  width: 6ch;
+  border-right: 2px solid #39ff88;
+  animation:
+    typing 0.9s steps(6, end) 0.3s 1 both,
+    caret 0.85s step-end 0.3s 4;
+}
+
 .output {
   color: #e6ffef;
+  opacity: 0;
+  animation: reveal 0.15s ease-out 1.4s 1 forwards;
 }
 
 .nav {
-  margin-top: 0.4rem;
+  opacity: 0;
+  animation: reveal 0.15s ease-out 1.6s 1 forwards;
 }
 
 .nav a {
@@ -49,8 +120,35 @@ html, body {
   animation: blink 1s steps(1) infinite;
 }
 
+@keyframes typing {
+  from { width: 0; }
+  to { width: 6ch; }
+}
+
+@keyframes caret {
+  50% { border-color: transparent; }
+}
+
+@keyframes reveal {
+  to { opacity: 1; }
+}
+
 @keyframes blink {
-  50% {
-    opacity: 0;
+  50% { opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .typed {
+    width: 6ch;
+    animation: none;
+    border-right: none;
+  }
+  .output,
+  .nav {
+    opacity: 1;
+    animation: none;
+  }
+  .cursor {
+    animation: none;
   }
 }
