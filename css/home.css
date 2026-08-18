@@ -331,6 +331,11 @@ a {
   border-radius: 3px;
 }
 
+.scroll-hint {
+  text-align: center;
+  margin: 0.5rem 0 0;
+}
+
 /* --- scroll reveal --- */
 
 .reveal.reveal-ready {
