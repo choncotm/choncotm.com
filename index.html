@@ -12,9 +12,19 @@
 <header class="navbar">
   <a href="#accueil" class="brand">CHONCOTM</a>
   <nav class="navlinks">
-    <a href="#accueil">Accueil</a>
-    <a href="#projets">Projets</a>
-    <a href="#contact">Contact</a>
+    <a href="#accueil" data-i18n="nav.home">Accueil</a>
+    <a href="#projets" data-i18n="nav.projects">Projets</a>
+    <a href="#contact" data-i18n="nav.contact">Contact</a>
+    <span class="lang-switch">
+      <select id="lang-select" aria-label="Langue">
+        <option value="fr">FR</option>
+        <option value="en">EN</option>
+        <option value="pt">PT</option>
+        <option value="es">ES</option>
+        <option value="ru">RU</option>
+        <option value="de">DE</option>
+      </select>
+    </span>
   </nav>
 </header>
 
@@ -23,7 +33,7 @@
   <section id="accueil" class="hero">
     <h1>choncotm</h1>
     <div class="rule"></div>
-    <p class="tagline">Développeur indépendant &mdash; cybersécurité, petits outils, bots et sites, faits avec soin.</p>
+    <p class="tagline" data-i18n="hero.tagline">Développeur indépendant &mdash; cybersécurité, petits outils, bots et sites, faits avec soin.</p>
   </section>
 
   <section class="sitemap reveal" aria-label="Plan du site">
@@ -31,47 +41,47 @@
       <li>
         <a href="#accueil" class="branch">choncotm.com</a>
         <ul>
-          <li><a href="#accueil">Accueil</a></li>
+          <li><a href="#accueil" data-i18n="nav.home">Accueil</a></li>
           <li>
-            <a href="#projets" class="branch">Projets</a>
+            <a href="#projets" class="branch" data-i18n="nav.projects">Projets</a>
             <ul>
               <li><a href="#amazon-price-tracker">Amazon Price Tracker</a></li>
               <li><a href="#choncotm-website">choncotm.com</a></li>
             </ul>
           </li>
-          <li><a href="#contact">Contact</a></li>
+          <li><a href="#contact" data-i18n="nav.contact">Contact</a></li>
         </ul>
       </li>
     </ul>
   </section>
 
   <section id="projets" class="projets reveal">
-    <h2>Projets</h2>
+    <h2 data-i18n="projects.heading">Projets</h2>
     <div class="rule rule-left"></div>
 
     <article id="amazon-price-tracker" class="project-card">
       <h3>Amazon Price Tracker</h3>
-      <p>Bot Telegram qui surveille le prix de produits Amazon et prévient en cas de changement.</p>
+      <p data-i18n="projects.aptDesc">Bot Telegram qui surveille le prix de produits Amazon et prévient en cas de changement.</p>
       <div class="project-links">
-        <a href="https://t.me/amazon_pricetracker_v0_bot">Ouvrir le bot &rarr;</a>
-        <a href="https://github.com/choncotm/amazon-price-tracker-bot">Code source</a>
-        <a href="/amazon-price-tracker/policy/">Politique de confidentialité</a>
+        <a href="https://t.me/amazon_pricetracker_v0_bot"><span data-i18n="projects.openBot">Ouvrir le bot</span> &rarr;</a>
+        <a href="https://github.com/choncotm/amazon-price-tracker-bot"><span data-i18n="projects.sourceCode">Code source</span> <span class="private-tag" data-i18n="projects.private">(privé)</span></a>
+        <a href="/amazon-price-tracker/policy/" data-i18n="projects.privacyPolicy">Politique de confidentialité</a>
       </div>
     </article>
 
     <article id="choncotm-website" class="project-card">
       <h3>choncotm.com</h3>
-      <p>Ce site : un site statique servi par Caddy dans Docker.</p>
+      <p data-i18n="projects.siteDesc">Le site sur lequel tu te trouves : ma vitrine, mon portfolio, mon image de marque.</p>
       <div class="project-links">
-        <a href="https://github.com/choncotm/choncotm.com">Code source</a>
+        <a href="https://github.com/choncotm/choncotm.com" data-i18n="projects.sourceCode">Code source</a>
       </div>
     </article>
   </section>
 
   <section id="contact" class="contact reveal">
-    <h2>Contact</h2>
+    <h2 data-i18n="contact.heading">Contact</h2>
     <div class="rule rule-left"></div>
-    <p><a href="mailto:choncotm77@gmail.com">choncotm77@gmail.com</a></p>
+    <p><a href="mailto:choncotmexe@outlook.com">choncotmexe@outlook.com</a></p>
     <p><a href="https://github.com/choncotm">github.com/choncotm</a></p>
   </section>
 
@@ -82,6 +92,7 @@
   <p>&copy; 2026 choncotm</p>
 </footer>
 
+<script src="/js/i18n.js" defer></script>
 <script src="/js/main.js" defer></script>
 </body>
 </html>

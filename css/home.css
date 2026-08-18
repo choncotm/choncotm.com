@@ -64,7 +64,26 @@ a {
 
 .navlinks {
   display: flex;
+  align-items: center;
   gap: 2rem;
+}
+
+.lang-switch select {
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid rgba(10, 10, 10, 0.35);
+  color: var(--bg);
+  font-family: var(--sans);
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+  padding: 0.1rem 0.15rem;
+  cursor: pointer;
+}
+
+.lang-switch select:hover,
+.lang-switch select:focus {
+  border-bottom-color: var(--bg);
+  outline: none;
 }
 
 @media (min-width: 641px) {
@@ -299,6 +318,11 @@ a {
 
 .project-links a:hover {
   border-bottom-color: var(--gold);
+}
+
+.private-tag {
+  color: var(--ink-dim);
+  font-size: 0.8em;
 }
 
 .contact p a {
