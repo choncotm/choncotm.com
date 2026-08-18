@@ -305,10 +305,10 @@ a {
   transform: translateY(-50%) rotate(90deg);
 }
 
-/* scrollable "carousel": shows ~3 projects, scroll for the rest */
+/* scrollable "carousel": shows 4 projects, scroll for the rest */
 
 .tree-scroll {
-  max-height: 8.8rem;
+  max-height: 11.75rem;
   overflow-y: auto;
   scroll-snap-type: y proximity;
   padding-right: 0.3rem;
