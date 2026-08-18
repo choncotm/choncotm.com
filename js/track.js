@@ -14,10 +14,5 @@ document.addEventListener("click", (event) => {
   if (!link) return;
 
   const href = link.getAttribute("href");
-  const isExternal = /^https?:\/\//.test(href) && !href.startsWith(location.origin);
-  const isSpecial = href.startsWith("mailto:") || href.startsWith("tel:");
-
-  if (isExternal || isSpecial) {
-    sendEvent({ type: "click", path: location.pathname, target: href });
-  }
+  sendEvent({ type: "click", path: location.pathname, target: href });
 });

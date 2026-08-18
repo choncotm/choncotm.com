@@ -10,7 +10,7 @@ I needed a real, professional home online: a place that presents who I am and wh
 
 A minimal static site (no build step, no framework) with a small client-side i18n layer, deployed behind [Caddy](https://caddyserver.com/) in Docker for automatic HTTPS. Easy to edit, fast to load, cheap to run.
 
-A small self-hosted FastAPI service (`admin/`) handles a password-protected `/admin` stats dashboard and records pageviews/outbound-link clicks reported by the site's own tracking script — no third-party analytics.
+A small self-hosted FastAPI service (`admin/`) handles a password-protected `/admin` stats dashboard and records pageviews/link clicks reported by the site's own tracking script — no third-party analytics.
 
 Hosted on an OVH VPS, running as one of several Docker containers on that server alongside my other projects (each isolated in its own container).
 
@@ -50,7 +50,7 @@ Hosted on an OVH VPS, running as one of several Docker containers on that server
 
 ## Stats / admin
 
-`/admin` is a login-protected dashboard (bcrypt-hashed password, signed session cookie, basic login rate-limiting) showing pageviews, unique visitors, top pages, and top outbound link clicks over the last 30 days. Events are posted by `js/track.js` to `POST /api/track` and stored in a dedicated PostgreSQL database — no cookies are set for visitors, and no raw IP is stored (a daily-rotating hash is used to estimate unique visitors).
+`/admin` is a login-protected dashboard (bcrypt-hashed password, signed session cookie, basic login rate-limiting) showing pageviews, unique visitors, top pages, and top link clicks (internal and external) over the last 30 days. Events are posted by `js/track.js` to `POST /api/track` and stored in a dedicated PostgreSQL database — no cookies are set for visitors, and no raw IP is stored (a daily-rotating hash is used to estimate unique visitors).
 
 The admin session expires after 1 hour server-side regardless of activity, and is a browser-session cookie (no persistent max-age), so closing the browser also logs you out.
 
