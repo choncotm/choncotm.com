@@ -8,23 +8,68 @@
 <link rel="stylesheet" href="/css/home.css">
 </head>
 <body>
-<div class="terminal-window">
-  <div class="titlebar">
-    <span class="dot dot-red"></span>
-    <span class="dot dot-yellow"></span>
-    <span class="dot dot-green"></span>
-    <span class="titlebar-label">choncotm@web: ~</span>
-  </div>
-  <main class="term">
-    <p class="line"><span class="prompt">choncotm@web</span><span class="colon">:</span><span class="path">~</span><span class="dollar">$</span> <span class="typed">whoami</span></p>
-    <p class="line output">&gt; Hello, I'm choncotm.</p>
-    <p class="line">&nbsp;</p>
-    <p class="line nav">
-      <a href="https://t.me/amazon_pricetracker_v0_bot">[amazon-price-tracker]</a>
-      <a href="mailto:choncotm77@gmail.com">[contact]</a>
-    </p>
-    <p class="line"><span class="prompt">choncotm@web</span><span class="colon">:</span><span class="path">~</span><span class="dollar">$</span> <span class="cursor">&nbsp;</span></p>
-  </main>
-</div>
+
+<header class="navbar">
+  <a href="#accueil" class="brand">CHONCOTM</a>
+  <nav class="navlinks">
+    <a href="#accueil">Accueil</a>
+    <a href="#projets">Projets</a>
+    <a href="#contact">Contact</a>
+  </nav>
+</header>
+
+<main>
+
+  <section id="accueil" class="hero">
+    <h1>choncotm</h1>
+    <div class="rule"></div>
+    <p class="tagline">Développeur indépendant &mdash; petits outils, bots et sites, faits avec soin.</p>
+  </section>
+
+  <section class="sitemap" aria-label="Plan du site">
+    <ul class="tree">
+      <li>
+        <a href="#accueil">choncotm.com</a>
+        <ul>
+          <li><a href="#accueil">Accueil</a></li>
+          <li>
+            <a href="#projets">Projets</a>
+            <ul>
+              <li><a href="#amazon-price-tracker">Amazon Price Tracker</a></li>
+            </ul>
+          </li>
+          <li><a href="#contact">Contact</a></li>
+        </ul>
+      </li>
+    </ul>
+  </section>
+
+  <section id="projets" class="projets">
+    <h2>Projets</h2>
+    <div class="rule rule-left"></div>
+
+    <article id="amazon-price-tracker" class="project-card">
+      <h3>Amazon Price Tracker</h3>
+      <p>Bot Telegram qui surveille le prix de produits Amazon et prévient en cas de changement.</p>
+      <div class="project-links">
+        <a href="https://t.me/amazon_pricetracker_v0_bot">Ouvrir le bot &rarr;</a>
+        <a href="/amazon-price-tracker/policy/">Politique de confidentialité</a>
+      </div>
+    </article>
+  </section>
+
+  <section id="contact" class="contact">
+    <h2>Contact</h2>
+    <div class="rule rule-left"></div>
+    <p><a href="mailto:choncotm77@gmail.com">choncotm77@gmail.com</a></p>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <div class="rule"></div>
+  <p>&copy; 2026 choncotm</p>
+</footer>
+
 </body>
 </html>
