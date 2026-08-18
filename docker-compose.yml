@@ -9,7 +9,34 @@ services:
     volumes:
       - caddy_data:/data
       - caddy_config:/config
+    depends_on:
+      - stats-api
+
+  stats-db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${STATS_DB_USER}
+      POSTGRES_PASSWORD: ${STATS_DB_PASSWORD}
+      POSTGRES_DB: ${STATS_DB_NAME}
+    volumes:
+      - stats_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${STATS_DB_USER}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  stats-api:
+    build: ./admin
+    restart: unless-stopped
+    env_file:
+      - .env
+    depends_on:
+      stats-db:
+        condition: service_healthy
 
 volumes:
   caddy_data:
   caddy_config:
+  stats_db_data:

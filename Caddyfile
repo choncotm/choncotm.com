@@ -8,4 +8,12 @@ choncotm.com, www.choncotm.com {
 
 	@static path *.css *.js *.png *.jpg *.svg *.ico
 	header @static Cache-Control "no-cache"
+
+	handle /api/* {
+		reverse_proxy stats-api:8000
+	}
+
+	handle /admin* {
+		reverse_proxy stats-api:8000
+	}
 }

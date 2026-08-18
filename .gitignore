@@ -1,1 +1,3 @@
 .claude/
+.env
+admin/**/__pycache__/

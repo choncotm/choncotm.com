@@ -13,8 +13,14 @@
 <body>
 
 <header class="navbar">
-  <a href="#accueil" class="brand">CHONCOTM</a>
-  <nav class="navlinks">
+  <div class="brand-group">
+    <a href="#accueil" class="brand">CHONCOTM</a>
+    <a href="/admin" class="admin-link">Admin</a>
+  </div>
+  <button class="nav-toggle" id="nav-toggle" aria-label="Menu" aria-expanded="false" aria-controls="navlinks">
+    <span></span><span></span><span></span>
+  </button>
+  <nav class="navlinks" id="navlinks">
     <a href="#accueil" data-i18n="nav.home">Accueil</a>
     <a href="#projets" data-i18n="nav.projects">Projets</a>
     <a href="#contact" data-i18n="nav.contact">Contact</a>
@@ -147,5 +153,6 @@
 
 <script src="/js/i18n.js" defer></script>
 <script src="/js/main.js" defer></script>
+<script src="/js/track.js" defer></script>
 </body>
 </html>

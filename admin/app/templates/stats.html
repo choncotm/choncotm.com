@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Stats — choncotm.com</title>
+<style>
+  body {
+    background: #0a0a0a;
+    color: #ece7db;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    margin: 0;
+    padding: 2.5rem 1.5rem 4rem;
+  }
+  .top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 900px;
+    margin: 0 auto 2rem;
+  }
+  h1 {
+    font-weight: 500;
+    font-size: 1.4rem;
+    margin: 0;
+  }
+  a.logout {
+    color: #a39d8f;
+    font-size: 0.85rem;
+    text-decoration: none;
+  }
+  a.logout:hover {
+    color: #c9a227;
+  }
+  .cards {
+    display: flex;
+    gap: 1rem;
+    max-width: 900px;
+    margin: 0 auto 2.5rem;
+    flex-wrap: wrap;
+  }
+  .card {
+    background: #111110;
+    border: 1px solid rgba(201, 162, 39, 0.35);
+    padding: 1.2rem 1.5rem;
+    border-radius: 4px;
+    flex: 1;
+    min-width: 160px;
+  }
+  .card .n {
+    font-size: 1.8rem;
+    font-weight: 600;
+    color: #c9a227;
+  }
+  .card .l {
+    font-size: 0.8rem;
+    color: #a39d8f;
+    margin-top: 0.3rem;
+  }
+  h2 {
+    max-width: 900px;
+    margin: 0 auto 0.8rem;
+    font-size: 1rem;
+    font-weight: 500;
+  }
+  table {
+    width: 100%;
+    max-width: 900px;
+    margin: 0 auto 2.5rem;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+  }
+  th, td {
+    text-align: left;
+    padding: 0.5rem 0.7rem;
+    border-bottom: 1px solid rgba(201, 162, 39, 0.15);
+  }
+  th {
+    color: #a39d8f;
+    font-weight: 500;
+  }
+  td.empty {
+    color: #6a655c;
+  }
+</style>
+</head>
+<body>
+  <div class="top">
+    <h1>Stats — choncotm.com</h1>
+    <a class="logout" href="/admin/logout">Déconnexion</a>
+  </div>
+
+  <div class="cards">
+    <div class="card"><div class="n">{{ total_pageviews }}</div><div class="l">Pages vues (total)</div></div>
+    <div class="card"><div class="n">{{ pageviews_30d }}</div><div class="l">Pages vues (30j)</div></div>
+    <div class="card"><div class="n">{{ unique_visitors_30d }}</div><div class="l">Visiteurs uniques (30j)</div></div>
+  </div>
+
+  <h2>Pages les plus vues (30j)</h2>
+  <table>
+    <tr><th>Page</th><th>Vues</th></tr>
+    {% for path, n in top_pages %}
+    <tr><td>{{ path }}</td><td>{{ n }}</td></tr>
+    {% else %}
+    <tr><td class="empty" colspan="2">Aucune donnée pour l'instant.</td></tr>
+    {% endfor %}
+  </table>
+
+  <h2>Liens les plus cliqués (30j)</h2>
+  <table>
+    <tr><th>Lien</th><th>Clics</th></tr>
+    {% for target, n in top_clicks %}
+    <tr><td>{{ target }}</td><td>{{ n }}</td></tr>
+    {% else %}
+    <tr><td class="empty" colspan="2">Aucune donnée pour l'instant.</td></tr>
+    {% endfor %}
+  </table>
+
+  <h2>Activité récente</h2>
+  <table>
+    <tr><th>Type</th><th>Détail</th><th>Date</th></tr>
+    {% for e in recent %}
+    <tr><td>{{ e.type }}</td><td>{{ e.target or e.path }}</td><td>{{ e.created_at.strftime("%d/%m %H:%M") }}</td></tr>
+    {% else %}
+    <tr><td class="empty" colspan="3">Aucune donnée pour l'instant.</td></tr>
+    {% endfor %}
+  </table>
+</body>
+</html>
