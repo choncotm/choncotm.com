@@ -5,4 +5,7 @@
 choncotm.com, www.choncotm.com {
 	root * /usr/share/caddy
 	file_server
+
+	@static path *.css *.js *.png *.jpg *.svg *.ico
+	header @static Cache-Control "no-cache"
 }
