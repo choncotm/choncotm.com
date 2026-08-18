@@ -2,7 +2,11 @@
 	email choncotm77@gmail.com
 }
 
-choncotm.com, www.choncotm.com {
+www.choncotm.com {
+	redir https://choncotm.com{uri} permanent
+}
+
+choncotm.com {
 	root * /usr/share/caddy
 	file_server
 
