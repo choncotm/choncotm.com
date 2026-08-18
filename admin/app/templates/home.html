@@ -66,6 +66,20 @@
     color: #6a655c;
     font-size: 0.9rem;
   }
+  .export-all {
+    display: inline-block;
+    margin-top: 1.5rem;
+    background: #c9a227;
+    color: #0a0a0a;
+    text-decoration: none;
+    padding: 0.6rem 1.1rem;
+    border-radius: 2px;
+    font-size: 0.85rem;
+    font-weight: 500;
+  }
+  .export-all:hover {
+    opacity: 0.9;
+  }
 </style>
 </head>
 <body>
@@ -84,5 +98,11 @@
     <p class="empty">Aucun dashboard ne t'a encore été attribué.</p>
     {% endfor %}
   </div>
+
+  {% if dashboards %}
+  <div style="max-width: 900px; margin: 0 auto;">
+    <a class="export-all" href="/admin/export/all.zip">Télécharger toutes mes stats (ZIP)</a>
+  </div>
+  {% endif %}
 </body>
 </html>

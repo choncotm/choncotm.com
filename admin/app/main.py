@@ -3,6 +3,7 @@ import hashlib
 import io
 import os
 import time
+import zipfile
 from datetime import datetime, timedelta, timezone
 
 import bcrypt
@@ -506,6 +507,33 @@ def _bot_report_table_row(r: dict) -> list[str]:
     ]
 
 
+def _bot_report_table(stats: dict, period_type: str) -> list[list[str]]:
+    return [_bot_report_table_row(r) for r in stats.get(period_type, [])]
+
+
+def _bot_feature_table(stats: dict, period_type: str) -> tuple[list[str], list[list[str]]]:
+    headers = ["Période"] + list(FEATURE_LABELS.values())
+    rows = [
+        [r["period_label"]] + [str(r["features"].get(k, 0)) for k in FEATURE_LABELS]
+        for r in stats.get("feature_reports", {}).get(period_type, [])
+    ]
+    return headers, rows
+
+
+def _site_report_table(period_type: str) -> list[list[str]]:
+    db = SessionLocal()
+    try:
+        reports = (
+            db.query(Report)
+            .filter_by(period_type=period_type)
+            .order_by(Report.period_label.desc())
+            .all()
+        )
+    finally:
+        db.close()
+    return [[r.period_label, str(r.total_pageviews), str(r.unique_visitors)] for r in reports]
+
+
 @app.get("/admin/bots/amazon-price-tracker/reports/{period_type}/{period_label}.{fmt}")
 def bot_report_export(request: Request, period_type: str, period_label: str, fmt: str):
     user = require_resource(request, "amazon_price_tracker")
@@ -520,7 +548,7 @@ def bot_report_export(request: Request, period_type: str, period_label: str, fmt
     period_reports = stats.get(period_type, [])
 
     if period_label == "all":
-        rows = [_bot_report_table_row(r) for r in period_reports]
+        rows = _bot_report_table(stats, period_type)
         title = f"Amazon Price Tracker — rapports {period_type}"
         return table_export_response(
             f"amazon-price-tracker-{period_type}-all", fmt, title, BOT_REPORT_TABLE_HEADERS, rows
@@ -556,11 +584,7 @@ def bot_feature_report_export(request: Request, period_type: str, period_label: 
     period_reports = stats.get("feature_reports", {}).get(period_type, [])
 
     if period_label == "all":
-        headers = ["Période"] + list(FEATURE_LABELS.values())
-        rows = [
-            [r["period_label"]] + [str(r["features"].get(k, 0)) for k in FEATURE_LABELS]
-            for r in period_reports
-        ]
+        headers, rows = _bot_feature_table(stats, period_type)
         title = f"Amazon Price Tracker — rapports fonctionnalités {period_type}"
         return table_export_response(
             f"amazon-price-tracker-features-{period_type}-all", fmt, title, headers, rows
@@ -576,6 +600,63 @@ def bot_feature_report_export(request: Request, period_type: str, period_label: 
     title = f"Amazon Price Tracker — fonctionnalités {period_type} {period_label}"
     return export_response(
         period_type, period_label, fmt, "amazon-price-tracker-features", title, rows
+    )
+
+
+@app.get("/admin/export/all.zip")
+def export_all_zip(request: Request):
+    user = current_user(request)
+    if not user:
+        return RedirectResponse("/admin", status_code=303)
+
+    files: dict[str, bytes] = {}
+
+    if user.is_owner:
+        headers = ["Période", "Pages vues", "Visiteurs uniques"]
+        for period_type in ("monthly", "yearly"):
+            rows = _site_report_table(period_type)
+            title = f"choncotm.com — rapports {period_type}"
+            files[f"site-{period_type}.csv"] = table_csv_bytes(headers, rows)
+            files[f"site-{period_type}.pdf"] = table_pdf_bytes(title, headers, rows)
+
+    granted = RESOURCE_KEYS if user.is_owner else set(user.resources or [])
+    if "amazon_price_tracker" in granted:
+        stats = fetch_bot_stats()
+        if stats:
+            for period_type in ("weekly", "monthly", "yearly"):
+                rows = _bot_report_table(stats, period_type)
+                title = f"Amazon Price Tracker — rapports {period_type}"
+                files[f"amazon-price-tracker-{period_type}.csv"] = table_csv_bytes(
+                    BOT_REPORT_TABLE_HEADERS, rows
+                )
+                files[f"amazon-price-tracker-{period_type}.pdf"] = table_pdf_bytes(
+                    title, BOT_REPORT_TABLE_HEADERS, rows
+                )
+
+                f_headers, f_rows = _bot_feature_table(stats, period_type)
+                f_title = f"Amazon Price Tracker — fonctionnalités {period_type}"
+                files[f"amazon-price-tracker-features-{period_type}.csv"] = table_csv_bytes(
+                    f_headers, f_rows
+                )
+                files[f"amazon-price-tracker-features-{period_type}.pdf"] = table_pdf_bytes(
+                    f_title, f_headers, f_rows
+                )
+
+    if not files:
+        raise HTTPException(status_code=404, detail="Aucune stats disponible pour ce compte")
+
+    buffer = io.BytesIO()
+    with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as zf:
+        for name, content in files.items():
+            zf.writestr(name, content)
+
+    date_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    return Response(
+        content=buffer.getvalue(),
+        media_type="application/zip",
+        headers={
+            "Content-Disposition": f'attachment; filename="choncotm-stats-{date_str}.zip"'
+        },
     )
 
 
@@ -706,29 +787,21 @@ def site_report_export(request: Request, period_type: str, period_label: str, fm
     if fmt not in ("pdf", "csv"):
         raise HTTPException(status_code=404)
 
-    db = SessionLocal()
-    try:
-        if period_label == "all":
-            reports = (
-                db.query(Report)
-                .filter_by(period_type=period_type)
-                .order_by(Report.period_label.desc())
-                .all()
-            )
-        else:
-            report = (
-                db.query(Report)
-                .filter_by(period_type=period_type, period_label=period_label)
-                .first()
-            )
-    finally:
-        db.close()
-
     if period_label == "all":
+        rows = _site_report_table(period_type)
         headers = ["Période", "Pages vues", "Visiteurs uniques"]
-        rows = [[r.period_label, str(r.total_pageviews), str(r.unique_visitors)] for r in reports]
         title = f"choncotm.com — rapports {period_type}"
         return table_export_response(f"choncotm-site-{period_type}-all", fmt, title, headers, rows)
+
+    db = SessionLocal()
+    try:
+        report = (
+            db.query(Report)
+            .filter_by(period_type=period_type, period_label=period_label)
+            .first()
+        )
+    finally:
+        db.close()
 
     if not report:
         raise HTTPException(status_code=404)
