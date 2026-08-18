@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Comptes — choncotm.com</title>
+<style>
+  body {
+    background: #0a0a0a;
+    color: #ece7db;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    margin: 0;
+    padding: 2.5rem 1.5rem 4rem;
+  }
+  .top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 900px;
+    margin: 0 auto 2rem;
+  }
+  h1 {
+    font-weight: 500;
+    font-size: 1.4rem;
+    margin: 0;
+  }
+  .links {
+    display: flex;
+    gap: 1.2rem;
+  }
+  .links a {
+    color: #a39d8f;
+    font-size: 0.85rem;
+    text-decoration: none;
+  }
+  .links a:hover {
+    color: #c9a227;
+  }
+  h2 {
+    max-width: 900px;
+    margin: 0 auto 0.8rem;
+    font-size: 1rem;
+    font-weight: 500;
+  }
+  .error {
+    max-width: 900px;
+    margin: 0 auto 1.5rem;
+    color: #ff8a8a;
+    font-size: 0.85rem;
+  }
+  .user-card {
+    max-width: 900px;
+    margin: 0 auto 1rem;
+    background: #111110;
+    border: 1px solid rgba(201, 162, 39, 0.35);
+    border-radius: 4px;
+    padding: 1.2rem 1.5rem;
+  }
+  .user-card .head {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    margin-bottom: 0.6rem;
+  }
+  .user-card .username {
+    font-weight: 500;
+  }
+  .badge {
+    font-size: 0.7rem;
+    color: #a39d8f;
+    border: 1px solid rgba(201, 162, 39, 0.35);
+    border-radius: 2px;
+    padding: 0.1rem 0.4rem;
+  }
+  .badge.owner {
+    color: #c9a227;
+    border-color: #c9a227;
+  }
+  form.edit {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.8rem;
+    font-size: 0.85rem;
+  }
+  form.edit label {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    color: #a39d8f;
+  }
+  input[type="text"], input[type="password"] {
+    background: #0a0a0a;
+    border: 1px solid rgba(201, 162, 39, 0.35);
+    color: #ece7db;
+    padding: 0.4rem 0.6rem;
+    border-radius: 2px;
+    font-size: 0.85rem;
+  }
+  button, .btn {
+    background: #c9a227;
+    color: #0a0a0a;
+    border: none;
+    padding: 0.4rem 0.8rem;
+    border-radius: 2px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 500;
+  }
+  button.danger {
+    background: transparent;
+    color: #ff8a8a;
+    border: 1px solid rgba(255, 138, 138, 0.4);
+  }
+  .create-form {
+    max-width: 900px;
+    margin: 0 auto 2.5rem;
+    background: #111110;
+    border: 1px solid rgba(201, 162, 39, 0.35);
+    border-radius: 4px;
+    padding: 1.2rem 1.5rem;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.8rem;
+    font-size: 0.85rem;
+  }
+  .create-form label {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    color: #a39d8f;
+  }
+</style>
+</head>
+<body>
+  <div class="top">
+    <h1>Comptes</h1>
+    <div class="links">
+      <a href="/admin/stats">&larr; Stats</a>
+      <a href="/admin/logout">Déconnexion</a>
+    </div>
+  </div>
+
+  {% if error %}<div class="error">{{ error }}</div>{% endif %}
+
+  <h2>Comptes existants</h2>
+  {% for u in users %}
+  <div class="user-card">
+    <div class="head">
+      <span class="username">{{ u.username }}</span>
+      {% if u.is_owner %}
+      <span class="badge owner">propriétaire</span>
+      {% else %}
+      {% for key, label in available_resources %}
+        {% if key in (u.resources or []) %}<span class="badge">{{ label }}</span>{% endif %}
+      {% endfor %}
+      {% endif %}
+    </div>
+    {% if not u.is_owner %}
+    <form class="edit" method="post" action="/admin/users/{{ u.id }}/update">
+      {% for key, label in available_resources %}
+      <label>
+        <input type="checkbox" name="resources" value="{{ key }}" {% if key in (u.resources or []) %}checked{% endif %}>
+        {{ label }}
+      </label>
+      {% endfor %}
+      <input type="password" name="password" placeholder="Nouveau mot de passe (optionnel)" autocomplete="new-password">
+      <button type="submit">Enregistrer</button>
+    </form>
+    <form method="post" action="/admin/users/{{ u.id }}/delete" onsubmit="return confirm('Supprimer {{ u.username }} ?');" style="margin-top: 0.6rem;">
+      <button type="submit" class="danger">Supprimer</button>
+    </form>
+    {% endif %}
+  </div>
+  {% endfor %}
+
+  <h2>Nouveau compte</h2>
+  <form class="create-form" method="post" action="/admin/users/create">
+    <input type="text" name="username" placeholder="Nom d'utilisateur" autocomplete="off" required>
+    <input type="password" name="password" placeholder="Mot de passe (8+ caractères)" autocomplete="new-password" required minlength="8">
+    {% for key, label in available_resources %}
+    <label>
+      <input type="checkbox" name="resources" value="{{ key }}">
+      {{ label }}
+    </label>
+    {% endfor %}
+    <button type="submit">Créer</button>
+  </form>
+</body>
+</html>

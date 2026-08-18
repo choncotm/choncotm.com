@@ -12,6 +12,7 @@ from fastapi.templating import Jinja2Templates
 from itsdangerous import BadSignature, SignatureExpired, URLSafeTimedSerializer
 from sqlalchemy import (
     JSON,
+    Boolean,
     Column,
     DateTime,
     Integer,
@@ -32,6 +33,13 @@ COOKIE_NAME = "admin_session"
 SESSION_MAX_AGE = 60 * 60  # 1h, enforced server-side regardless of cookie lifetime
 MAX_ATTEMPTS = 5
 LOCKOUT_SECONDS = 300
+
+# key -> human label, shown as checkboxes on /admin/users
+AVAILABLE_RESOURCES = [
+    ("amazon_price_tracker", "Amazon Price Tracker — bot Telegram"),
+]
+RESOURCE_KEYS = {key for key, _label in AVAILABLE_RESOURCES}
+RESOURCE_LABELS = dict(AVAILABLE_RESOURCES)
 
 serializer = URLSafeTimedSerializer(SESSION_SECRET)
 
@@ -66,7 +74,44 @@ class Report(Base):
     generated_at = Column(DateTime(timezone=True), server_default=func.now())
 
 
+class User(Base):
+    __tablename__ = "users"
+
+    id = Column(Integer, primary_key=True)
+    username = Column(String(64), unique=True, nullable=False)
+    password_hash = Column(String(60), nullable=False)
+    is_owner = Column(Boolean, nullable=False, default=False)
+    resources = Column(JSON, nullable=False, default=list)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
 Base.metadata.create_all(engine)
+
+
+def bootstrap_owner() -> None:
+    """Seed the owner account from env vars on first run.
+
+    Keeps existing .env files working with no manual migration step;
+    further accounts are managed from /admin/users.
+    """
+    db = SessionLocal()
+    try:
+        if db.query(User).filter(User.username == ADMIN_USERNAME).first():
+            return
+        db.add(
+            User(
+                username=ADMIN_USERNAME,
+                password_hash=ADMIN_PASSWORD_HASH.decode(),
+                is_owner=True,
+                resources=[],
+            )
+        )
+        db.commit()
+    finally:
+        db.close()
+
+
+bootstrap_owner()
 
 app = FastAPI()
 templates = Jinja2Templates(directory="app/templates")
@@ -197,21 +242,52 @@ def clear_attempts(ip: str) -> None:
     _failed_attempts.pop(ip, None)
 
 
-def is_authenticated(request: Request) -> bool:
+def _cookie_username(request: Request) -> str | None:
     cookie = request.cookies.get(COOKIE_NAME)
     if not cookie:
-        return False
+        return None
     try:
-        data = serializer.loads(cookie, max_age=SESSION_MAX_AGE)
+        return serializer.loads(cookie, max_age=SESSION_MAX_AGE)
     except (BadSignature, SignatureExpired):
-        return False
-    return data == ADMIN_USERNAME
+        return None
+
+
+def current_user(request: Request) -> User | None:
+    username = _cookie_username(request)
+    if not username:
+        return None
+    db = SessionLocal()
+    try:
+        return db.query(User).filter(User.username == username).first()
+    finally:
+        db.close()
+
+
+def require_owner(request: Request) -> User | None:
+    """Returns the user if they're the owner, else None."""
+    user = current_user(request)
+    return user if user and user.is_owner else None
+
+
+def require_resource(request: Request, key: str) -> User | None:
+    """Returns the user if they're the owner or have this resource, else None."""
+    user = current_user(request)
+    if not user:
+        return None
+    if user.is_owner or key in (user.resources or []):
+        return user
+    return None
+
+
+def landing_url(user: User) -> str:
+    return "/admin/stats" if user.is_owner else "/admin/home"
 
 
 @app.get("/admin", response_class=HTMLResponse)
 def login_page(request: Request):
-    if is_authenticated(request):
-        return RedirectResponse("/admin/stats", status_code=303)
+    user = current_user(request)
+    if user:
+        return RedirectResponse(landing_url(user), status_code=303)
     return templates.TemplateResponse(
         "login.html", {"request": request, "error": None}
     )
@@ -227,9 +303,16 @@ def login(request: Request, username: str = Form(...), password: str = Form(...)
             status_code=429,
         )
 
-    valid = username == ADMIN_USERNAME and bcrypt.checkpw(
-        password.encode(), ADMIN_PASSWORD_HASH
-    )
+    db = SessionLocal()
+    try:
+        user = db.query(User).filter(User.username == username).first()
+        valid = user is not None and bcrypt.checkpw(
+            password.encode(), user.password_hash.encode()
+        )
+        landing = landing_url(user) if valid else "/admin/stats"
+    finally:
+        db.close()
+
     if not valid:
         record_failed_attempt(ip)
         return templates.TemplateResponse(
@@ -239,8 +322,8 @@ def login(request: Request, username: str = Form(...), password: str = Form(...)
         )
 
     clear_attempts(ip)
-    token = serializer.dumps(ADMIN_USERNAME)
-    resp = RedirectResponse("/admin/stats", status_code=303)
+    token = serializer.dumps(username)
+    resp = RedirectResponse(landing, status_code=303)
     resp.set_cookie(
         COOKIE_NAME,
         token,
@@ -260,9 +343,43 @@ def logout():
     return resp
 
 
+@app.get("/admin/home", response_class=HTMLResponse)
+def home_page(request: Request):
+    user = current_user(request)
+    if not user:
+        return RedirectResponse("/admin", status_code=303)
+    if user.is_owner:
+        return RedirectResponse("/admin/stats", status_code=303)
+
+    dashboards = [
+        {"url": "/admin/bots/amazon-price-tracker", "label": RESOURCE_LABELS[key]}
+        for key in (user.resources or [])
+        if key in RESOURCE_KEYS
+    ]
+    return templates.TemplateResponse(
+        "home.html",
+        {"request": request, "user": user, "dashboards": dashboards},
+    )
+
+
+@app.get("/admin/bots/amazon-price-tracker", response_class=HTMLResponse)
+def bot_amazon_price_tracker_page(request: Request):
+    user = require_resource(request, "amazon_price_tracker")
+    if not user:
+        return RedirectResponse("/admin", status_code=303)
+    return templates.TemplateResponse(
+        "bot_placeholder.html",
+        {
+            "request": request,
+            "user": user,
+            "title": "Amazon Price Tracker",
+        },
+    )
+
+
 @app.get("/admin/stats", response_class=HTMLResponse)
 def stats_page(request: Request):
-    if not is_authenticated(request):
+    if not require_owner(request):
         return RedirectResponse("/admin", status_code=303)
 
     since = datetime.now(timezone.utc) - timedelta(days=30)
@@ -327,7 +444,7 @@ HISTORY_PAGE_SIZE = 50
 
 @app.get("/admin/history", response_class=HTMLResponse)
 def history_page(request: Request, page: int = 1):
-    if not is_authenticated(request):
+    if not require_owner(request):
         return RedirectResponse("/admin", status_code=303)
 
     page = max(page, 1)
@@ -362,7 +479,7 @@ def history_page(request: Request, page: int = 1):
 
 @app.get("/admin/reports", response_class=HTMLResponse)
 def reports_page(request: Request):
-    if not is_authenticated(request):
+    if not require_owner(request):
         return RedirectResponse("/admin", status_code=303)
 
     db = SessionLocal()
@@ -378,6 +495,126 @@ def reports_page(request: Request):
         "reports.html",
         {"request": request, "monthly": monthly, "yearly": yearly},
     )
+
+
+@app.get("/admin/users", response_class=HTMLResponse)
+def users_page(request: Request, error: str | None = None):
+    if not require_owner(request):
+        return RedirectResponse("/admin", status_code=303)
+
+    db = SessionLocal()
+    try:
+        users = db.query(User).order_by(User.username).all()
+    finally:
+        db.close()
+
+    return templates.TemplateResponse(
+        "users.html",
+        {
+            "request": request,
+            "users": users,
+            "available_resources": AVAILABLE_RESOURCES,
+            "error": error,
+        },
+    )
+
+
+@app.post("/admin/users/create")
+def create_user(
+    request: Request,
+    username: str = Form(...),
+    password: str = Form(...),
+    resources: list[str] = Form([]),
+):
+    owner = require_owner(request)
+    if not owner:
+        return RedirectResponse("/admin", status_code=303)
+
+    username = username.strip()
+    granted = [r for r in resources if r in RESOURCE_KEYS]
+
+    if not username or len(password) < 8:
+        return RedirectResponse(
+            "/admin/users?error=Nom+d%27utilisateur+requis+et+mot+de+passe+d%27au+moins+8+caract%C3%A8res.",
+            status_code=303,
+        )
+
+    db = SessionLocal()
+    try:
+        db.add(
+            User(
+                username=username,
+                password_hash=bcrypt.hashpw(
+                    password.encode(), bcrypt.gensalt()
+                ).decode(),
+                is_owner=False,
+                resources=granted,
+            )
+        )
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        return RedirectResponse(
+            "/admin/users?error=Ce+nom+d%27utilisateur+existe+d%C3%A9j%C3%A0.",
+            status_code=303,
+        )
+    finally:
+        db.close()
+
+    return RedirectResponse("/admin/users", status_code=303)
+
+
+@app.post("/admin/users/{user_id}/update")
+def update_user(
+    request: Request,
+    user_id: int,
+    password: str = Form(""),
+    resources: list[str] = Form([]),
+):
+    owner = require_owner(request)
+    if not owner:
+        return RedirectResponse("/admin", status_code=303)
+
+    granted = [r for r in resources if r in RESOURCE_KEYS]
+
+    if password and len(password) < 8:
+        return RedirectResponse(
+            "/admin/users?error=Le+mot+de+passe+doit+faire+au+moins+8+caract%C3%A8res.",
+            status_code=303,
+        )
+
+    db = SessionLocal()
+    try:
+        target = db.query(User).filter(User.id == user_id).first()
+        if target and not target.is_owner:
+            target.resources = granted
+            if password:
+                target.password_hash = bcrypt.hashpw(
+                    password.encode(), bcrypt.gensalt()
+                ).decode()
+            db.commit()
+    finally:
+        db.close()
+
+    return RedirectResponse("/admin/users", status_code=303)
+
+
+@app.post("/admin/users/{user_id}/delete")
+def delete_user(request: Request, user_id: int):
+    owner = require_owner(request)
+    if not owner:
+        return RedirectResponse("/admin", status_code=303)
+
+    db = SessionLocal()
+    try:
+        target = db.query(User).filter(User.id == user_id).first()
+        if target and not target.is_owner:
+            db.delete(target)
+            db.commit()
+    finally:
+        db.close()
+
+    return RedirectResponse("/admin/users", status_code=303)
 
 
 @app.post("/api/track")

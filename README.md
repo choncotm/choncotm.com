@@ -50,11 +50,19 @@ Hosted on an OVH VPS, running as one of several Docker containers on that server
 
 ## Stats / admin
 
-`/admin` is a login-protected dashboard (bcrypt-hashed password, signed session cookie, basic login rate-limiting) showing pageviews, unique visitors, top pages, and top link clicks (internal and external) over the last 30 days. Events are posted by `js/track.js` to `POST /api/track` and stored in a dedicated PostgreSQL database — no cookies are set for visitors, and no raw IP is stored (a daily-rotating hash is used to estimate unique visitors).
+`/admin` is a login-protected dashboard (bcrypt-hashed passwords, signed session cookie, basic login rate-limiting) showing pageviews, unique visitors, top pages, and top link clicks (internal and external) over the last 30 days. Events are posted by `js/track.js` to `POST /api/track` and stored in a dedicated PostgreSQL database — no cookies are set for visitors, and no raw IP is stored (a daily-rotating hash is used to estimate unique visitors).
 
 The admin session expires after 1 hour server-side regardless of activity, and is a browser-session cookie (no persistent max-age), so closing the browser also logs you out.
 
 `/admin/history` paginates through every recorded event (50 per page) instead of loading it all at once. `/admin/reports` shows monthly and yearly summaries, generated automatically by an in-process scheduler on the 1st of each month and on January 1st.
+
+### Accounts and permissions
+
+Accounts live in the `users` table (username, bcrypt password hash, `is_owner` flag, list of granted `resources`). The owner account is seeded once from `ADMIN_USERNAME`/`ADMIN_PASSWORD_HASH` on first run; after that, all accounts (including the owner's own password) are managed from `/admin/users`, which is itself owner-only.
+
+- The **owner** (`is_owner=True`) can see everything: site stats/history/reports, `/admin/users`, and every per-resource dashboard.
+- **Collaborators** have no `is_owner` flag and only see the dashboards for the resources granted to them (e.g. `amazon_price_tracker` for the Amazon Price Tracker bot, shared with visualbynoah) via `/admin/home`. They cannot see the site's own analytics.
+- `/admin/bots/amazon-price-tracker` is currently a placeholder page — the bot's stats live in its own separate project/database and aren't wired up yet.
 
 ## Running locally
 

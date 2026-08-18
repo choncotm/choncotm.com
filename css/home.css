@@ -130,7 +130,7 @@ a {
   outline: none;
 }
 
-@media (min-width: 641px) {
+@media (min-width: 901px) {
   .brand-group {
     order: 2;
   }
@@ -481,7 +481,7 @@ a {
   letter-spacing: 0.04em;
 }
 
-@media (max-width: 640px) {
+@media (max-width: 900px) {
   .navbar {
     padding: 0.9rem 1.2rem;
     flex-wrap: wrap;

@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ title }} — choncotm.com</title>
+<style>
+  body {
+    background: #0a0a0a;
+    color: #ece7db;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    margin: 0;
+    padding: 2.5rem 1.5rem 4rem;
+  }
+  .top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 900px;
+    margin: 0 auto 2rem;
+  }
+  h1 {
+    font-weight: 500;
+    font-size: 1.4rem;
+    margin: 0;
+  }
+  .links {
+    display: flex;
+    gap: 1.2rem;
+  }
+  .links a {
+    color: #a39d8f;
+    font-size: 0.85rem;
+    text-decoration: none;
+  }
+  .links a:hover {
+    color: #c9a227;
+  }
+  .placeholder {
+    max-width: 900px;
+    margin: 0 auto;
+    background: #111110;
+    border: 1px solid rgba(201, 162, 39, 0.35);
+    border-radius: 4px;
+    padding: 2rem;
+    color: #a39d8f;
+    font-size: 0.95rem;
+  }
+</style>
+</head>
+<body>
+  <div class="top">
+    <h1>{{ title }}</h1>
+    <div class="links">
+      {% if user.is_owner %}<a href="/admin/stats">Stats du site</a>{% else %}<a href="/admin/home">&larr; Accueil</a>{% endif %}
+      <a href="/admin/logout">Déconnexion</a>
+    </div>
+  </div>
+
+  <div class="placeholder">
+    Dashboard bientôt disponible — les statistiques du bot Telegram seront affichées ici.
+  </div>
+</body>
+</html>
