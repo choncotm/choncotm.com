@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Historique — choncotm.com</title>
+<style>
+  body {
+    background: #0a0a0a;
+    color: #ece7db;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    margin: 0;
+    padding: 2.5rem 1.5rem 4rem;
+  }
+  .top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 900px;
+    margin: 0 auto 0.5rem;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+  }
+  h1 {
+    font-weight: 500;
+    font-size: 1.4rem;
+    margin: 0;
+  }
+  .links {
+    display: flex;
+    gap: 1.2rem;
+  }
+  a {
+    color: #a39d8f;
+    font-size: 0.85rem;
+    text-decoration: none;
+  }
+  a:hover {
+    color: #c9a227;
+  }
+  .subtitle {
+    max-width: 900px;
+    margin: 0 auto 1.5rem;
+    color: #a39d8f;
+    font-size: 0.8rem;
+  }
+  table {
+    width: 100%;
+    max-width: 900px;
+    margin: 0 auto 2rem;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+  }
+  th, td {
+    text-align: left;
+    padding: 0.5rem 0.7rem;
+    border-bottom: 1px solid rgba(201, 162, 39, 0.15);
+    word-break: break-all;
+  }
+  th {
+    color: #a39d8f;
+    font-weight: 500;
+  }
+  td.empty {
+    color: #6a655c;
+  }
+  .pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1.2rem;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+  .pagination a,
+  .pagination span {
+    font-size: 0.85rem;
+  }
+  .pagination .disabled {
+    color: #4a463f;
+  }
+</style>
+</head>
+<body>
+  <div class="top">
+    <h1>Historique</h1>
+    <div class="links">
+      <a href="/admin/stats">&larr; Stats</a>
+      <a href="/admin/reports">Rapports</a>
+      <a href="/admin/logout">Déconnexion</a>
+    </div>
+  </div>
+  <div class="subtitle">{{ total }} événement(s) au total &mdash; page {{ page }}/{{ total_pages }}</div>
+
+  <table>
+    <tr><th>Type</th><th>Détail</th><th>Page</th><th>Date</th></tr>
+    {% for e in events %}
+    <tr>
+      <td>{{ e.type }}</td>
+      <td>{{ e.target or "—" }}</td>
+      <td>{{ e.path }}</td>
+      <td>{{ e.created_at.strftime("%d/%m/%Y %H:%M") }}</td>
+    </tr>
+    {% else %}
+    <tr><td class="empty" colspan="4">Aucune donnée.</td></tr>
+    {% endfor %}
+  </table>
+
+  <div class="pagination">
+    {% if page > 1 %}
+      <a href="/admin/history?page={{ page - 1 }}">&larr; Précédent</a>
+    {% else %}
+      <span class="disabled">&larr; Précédent</span>
+    {% endif %}
+    <span>{{ page }} / {{ total_pages }}</span>
+    {% if page < total_pages %}
+      <a href="/admin/history?page={{ page + 1 }}">Suivant &rarr;</a>
+    {% else %}
+      <span class="disabled">Suivant &rarr;</span>
+    {% endif %}
+  </div>
+</body>
+</html>

@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rapports — choncotm.com</title>
+<style>
+  body {
+    background: #0a0a0a;
+    color: #ece7db;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    margin: 0;
+    padding: 2.5rem 1.5rem 4rem;
+  }
+  .top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 900px;
+    margin: 0 auto 0.5rem;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+  }
+  h1 {
+    font-weight: 500;
+    font-size: 1.4rem;
+    margin: 0;
+  }
+  .links {
+    display: flex;
+    gap: 1.2rem;
+  }
+  .links a {
+    color: #a39d8f;
+    font-size: 0.85rem;
+    text-decoration: none;
+  }
+  .links a:hover {
+    color: #c9a227;
+  }
+  .subtitle {
+    max-width: 900px;
+    margin: 0 auto 1.5rem;
+    color: #a39d8f;
+    font-size: 0.8rem;
+  }
+  h2 {
+    max-width: 900px;
+    margin: 2rem auto 0.8rem;
+    font-size: 1.1rem;
+    font-weight: 500;
+  }
+  .report {
+    max-width: 900px;
+    margin: 0 auto 1.2rem;
+    background: #111110;
+    border: 1px solid rgba(201, 162, 39, 0.35);
+    border-radius: 4px;
+    padding: 1.2rem 1.5rem;
+  }
+  .report summary {
+    cursor: pointer;
+    font-size: 0.95rem;
+    list-style: none;
+  }
+  .report summary::-webkit-details-marker {
+    display: none;
+  }
+  .report summary .label {
+    color: #c9a227;
+    font-weight: 600;
+  }
+  .report summary .meta {
+    color: #a39d8f;
+    font-size: 0.8rem;
+    margin-left: 0.6rem;
+  }
+  .report table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.82rem;
+    margin-top: 1rem;
+  }
+  .report th, .report td {
+    text-align: left;
+    padding: 0.4rem 0.5rem;
+    border-bottom: 1px solid rgba(201, 162, 39, 0.15);
+  }
+  .report th {
+    color: #a39d8f;
+    font-weight: 500;
+  }
+  .empty {
+    max-width: 900px;
+    margin: 0 auto;
+    color: #6a655c;
+    font-size: 0.85rem;
+  }
+</style>
+</head>
+<body>
+  <div class="top">
+    <h1>Rapports</h1>
+    <div class="links">
+      <a href="/admin/stats">&larr; Stats</a>
+      <a href="/admin/history">Historique</a>
+      <a href="/admin/logout">Déconnexion</a>
+    </div>
+  </div>
+  <div class="subtitle">Générés automatiquement le 1er de chaque mois (rapport mensuel) et le 1er janvier (rapport annuel).</div>
+
+  <h2>Mensuels</h2>
+  {% for r in monthly %}
+  <details class="report">
+    <summary>
+      <span class="label">{{ r.period_label }}</span>
+      <span class="meta">{{ r.total_pageviews }} vues &middot; {{ r.unique_visitors }} visiteurs uniques</span>
+    </summary>
+    <table>
+      <tr><th>Pages les plus vues</th><th>Vues</th></tr>
+      {% for path, n in r.top_pages %}
+      <tr><td>{{ path }}</td><td>{{ n }}</td></tr>
+      {% endfor %}
+    </table>
+    <table>
+      <tr><th>Liens les plus cliqués</th><th>Clics</th></tr>
+      {% for target, n in r.top_clicks %}
+      <tr><td>{{ target }}</td><td>{{ n }}</td></tr>
+      {% endfor %}
+    </table>
+  </details>
+  {% else %}
+  <p class="empty">Aucun rapport mensuel pour l'instant &mdash; le premier sera généré le 1er du mois prochain.</p>
+  {% endfor %}
+
+  <h2>Annuels</h2>
+  {% for r in yearly %}
+  <details class="report">
+    <summary>
+      <span class="label">{{ r.period_label }}</span>
+      <span class="meta">{{ r.total_pageviews }} vues &middot; {{ r.unique_visitors }} visiteurs uniques</span>
+    </summary>
+    <table>
+      <tr><th>Pages les plus vues</th><th>Vues</th></tr>
+      {% for path, n in r.top_pages %}
+      <tr><td>{{ path }}</td><td>{{ n }}</td></tr>
+      {% endfor %}
+    </table>
+    <table>
+      <tr><th>Liens les plus cliqués</th><th>Clics</th></tr>
+      {% for target, n in r.top_clicks %}
+      <tr><td>{{ target }}</td><td>{{ n }}</td></tr>
+      {% endfor %}
+    </table>
+  </details>
+  {% else %}
+  <p class="empty">Aucun rapport annuel pour l'instant &mdash; le premier sera généré le 1er janvier prochain.</p>
+  {% endfor %}
+</body>
+</html>

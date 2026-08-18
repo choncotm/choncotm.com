@@ -4,11 +4,23 @@ import time
 from datetime import datetime, timedelta, timezone
 
 import bcrypt
+from apscheduler.schedulers.background import BackgroundScheduler
+from apscheduler.triggers.cron import CronTrigger
 from fastapi import FastAPI, Form, HTTPException, Request
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from itsdangerous import BadSignature, SignatureExpired, URLSafeTimedSerializer
-from sqlalchemy import Column, DateTime, Integer, String, create_engine, func
+from sqlalchemy import (
+    JSON,
+    Column,
+    DateTime,
+    Integer,
+    String,
+    UniqueConstraint,
+    create_engine,
+    func,
+)
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import declarative_base, sessionmaker
 
 ADMIN_USERNAME = os.environ["ADMIN_USERNAME"]
@@ -40,10 +52,118 @@ class Event(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
 
+class Report(Base):
+    __tablename__ = "reports"
+    __table_args__ = (UniqueConstraint("period_type", "period_label"),)
+
+    id = Column(Integer, primary_key=True)
+    period_type = Column(String(10), nullable=False)  # "monthly" or "yearly"
+    period_label = Column(String(20), nullable=False)  # "2026-07" or "2026"
+    total_pageviews = Column(Integer, nullable=False)
+    unique_visitors = Column(Integer, nullable=False)
+    top_pages = Column(JSON, nullable=False)
+    top_clicks = Column(JSON, nullable=False)
+    generated_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
 Base.metadata.create_all(engine)
 
 app = FastAPI()
 templates = Jinja2Templates(directory="app/templates")
+
+
+def generate_report(period_type: str, start: datetime, end: datetime, label: str) -> None:
+    db = SessionLocal()
+    try:
+        total_pageviews = (
+            db.query(Event)
+            .filter(
+                Event.type == "pageview",
+                Event.created_at >= start,
+                Event.created_at < end,
+            )
+            .count()
+        )
+        unique_visitors = (
+            db.query(Event.visitor_hash)
+            .filter(
+                Event.type == "pageview",
+                Event.created_at >= start,
+                Event.created_at < end,
+                Event.visitor_hash.isnot(None),
+            )
+            .distinct()
+            .count()
+        )
+        top_pages = (
+            db.query(Event.path, func.count(Event.id))
+            .filter(
+                Event.type == "pageview",
+                Event.created_at >= start,
+                Event.created_at < end,
+            )
+            .group_by(Event.path)
+            .order_by(func.count(Event.id).desc())
+            .limit(10)
+            .all()
+        )
+        top_clicks = (
+            db.query(Event.target, func.count(Event.id))
+            .filter(
+                Event.type == "click",
+                Event.created_at >= start,
+                Event.created_at < end,
+                Event.target.isnot(None),
+            )
+            .group_by(Event.target)
+            .order_by(func.count(Event.id).desc())
+            .limit(10)
+            .all()
+        )
+        db.add(
+            Report(
+                period_type=period_type,
+                period_label=label,
+                total_pageviews=total_pageviews,
+                unique_visitors=unique_visitors,
+                top_pages=[[p, n] for p, n in top_pages],
+                top_clicks=[[t, n] for t, n in top_clicks],
+            )
+        )
+        db.commit()
+    except IntegrityError:
+        db.rollback()  # report for this period already exists
+    finally:
+        db.close()
+
+
+def run_monthly_report() -> None:
+    now = datetime.now(timezone.utc)
+    this_month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    if this_month_start.month == 1:
+        prev_month_start = this_month_start.replace(
+            year=this_month_start.year - 1, month=12
+        )
+    else:
+        prev_month_start = this_month_start.replace(month=this_month_start.month - 1)
+    label = prev_month_start.strftime("%Y-%m")
+    generate_report("monthly", prev_month_start, this_month_start, label)
+
+
+def run_yearly_report() -> None:
+    now = datetime.now(timezone.utc)
+    this_year_start = now.replace(
+        month=1, day=1, hour=0, minute=0, second=0, microsecond=0
+    )
+    prev_year_start = this_year_start.replace(year=this_year_start.year - 1)
+    label = str(prev_year_start.year)
+    generate_report("yearly", prev_year_start, this_year_start, label)
+
+
+scheduler = BackgroundScheduler(timezone="UTC")
+scheduler.add_job(run_monthly_report, CronTrigger(day=1, hour=0, minute=5))
+scheduler.add_job(run_yearly_report, CronTrigger(month=1, day=1, hour=0, minute=10))
+scheduler.start()
 
 _failed_attempts: dict[str, tuple[int, float]] = {}
 
@@ -199,6 +319,64 @@ def stats_page(request: Request):
             "top_clicks": top_clicks,
             "recent": recent,
         },
+    )
+
+
+HISTORY_PAGE_SIZE = 50
+
+
+@app.get("/admin/history", response_class=HTMLResponse)
+def history_page(request: Request, page: int = 1):
+    if not is_authenticated(request):
+        return RedirectResponse("/admin", status_code=303)
+
+    page = max(page, 1)
+    offset = (page - 1) * HISTORY_PAGE_SIZE
+
+    db = SessionLocal()
+    try:
+        total = db.query(Event).count()
+        events = (
+            db.query(Event)
+            .order_by(Event.created_at.desc())
+            .offset(offset)
+            .limit(HISTORY_PAGE_SIZE)
+            .all()
+        )
+    finally:
+        db.close()
+
+    total_pages = max((total + HISTORY_PAGE_SIZE - 1) // HISTORY_PAGE_SIZE, 1)
+
+    return templates.TemplateResponse(
+        "history.html",
+        {
+            "request": request,
+            "events": events,
+            "page": page,
+            "total_pages": total_pages,
+            "total": total,
+        },
+    )
+
+
+@app.get("/admin/reports", response_class=HTMLResponse)
+def reports_page(request: Request):
+    if not is_authenticated(request):
+        return RedirectResponse("/admin", status_code=303)
+
+    db = SessionLocal()
+    try:
+        reports = db.query(Report).order_by(Report.period_label.desc()).all()
+    finally:
+        db.close()
+
+    monthly = [r for r in reports if r.period_type == "monthly"]
+    yearly = [r for r in reports if r.period_type == "yearly"]
+
+    return templates.TemplateResponse(
+        "reports.html",
+        {"request": request, "monthly": monthly, "yearly": yearly},
     )
 
 

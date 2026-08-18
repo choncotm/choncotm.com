@@ -38,8 +38,8 @@ Hosted on an OVH VPS, running as one of several Docker containers on that server
 │   └── policy/index.html             # privacy policy for the Amazon Price Tracker bot
 ├── admin/                            # stats/admin backend (FastAPI)
 │   ├── app/
-│   │   ├── main.py                   # routes: /admin (login), /admin/stats, /api/track
-│   │   └── templates/                # server-rendered login + stats dashboard
+│   │   ├── main.py                   # routes, scheduled monthly/yearly reports
+│   │   └── templates/                # server-rendered login, stats, history, reports
 │   ├── requirements.txt
 │   └── Dockerfile
 ├── Caddyfile                         # reverse proxy / HTTPS config
@@ -53,6 +53,8 @@ Hosted on an OVH VPS, running as one of several Docker containers on that server
 `/admin` is a login-protected dashboard (bcrypt-hashed password, signed session cookie, basic login rate-limiting) showing pageviews, unique visitors, top pages, and top link clicks (internal and external) over the last 30 days. Events are posted by `js/track.js` to `POST /api/track` and stored in a dedicated PostgreSQL database — no cookies are set for visitors, and no raw IP is stored (a daily-rotating hash is used to estimate unique visitors).
 
 The admin session expires after 1 hour server-side regardless of activity, and is a browser-session cookie (no persistent max-age), so closing the browser also logs you out.
+
+`/admin/history` paginates through every recorded event (50 per page) instead of loading it all at once. `/admin/reports` shows monthly and yearly summaries, generated automatically by an in-process scheduler on the 1st of each month and on January 1st.
 
 ## Running locally
 

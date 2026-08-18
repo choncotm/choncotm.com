@@ -24,12 +24,16 @@
     font-size: 1.4rem;
     margin: 0;
   }
-  a.logout {
+  .links {
+    display: flex;
+    gap: 1.2rem;
+  }
+  .links a {
     color: #a39d8f;
     font-size: 0.85rem;
     text-decoration: none;
   }
-  a.logout:hover {
+  .links a:hover {
     color: #c9a227;
   }
   .cards {
@@ -87,7 +91,11 @@
 <body>
   <div class="top">
     <h1>Stats — choncotm.com</h1>
-    <a class="logout" href="/admin/logout">Déconnexion</a>
+    <div class="links">
+      <a href="/admin/history">Historique</a>
+      <a href="/admin/reports">Rapports</a>
+      <a href="/admin/logout">Déconnexion</a>
+    </div>
   </div>
 
   <div class="cards">
