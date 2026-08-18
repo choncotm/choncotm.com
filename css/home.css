@@ -67,6 +67,15 @@ a {
   gap: 2rem;
 }
 
+@media (min-width: 641px) {
+  .brand {
+    order: 2;
+  }
+  .navlinks {
+    order: 1;
+  }
+}
+
 .navlinks a {
   text-decoration: none;
   font-size: 0.85rem;
@@ -148,14 +157,15 @@ a {
 
 .tree li {
   display: table-cell;
-  padding: 2rem 1.2rem 0;
+  padding: 2.5rem 1.2rem 0;
   vertical-align: top;
 }
 
+/* horizontal bar joining a row of siblings, sat 1.5rem below their parent */
 .tree li::before {
   content: "";
   position: absolute;
-  top: 0;
+  top: 1.5rem;
   left: 0;
   right: 0;
   border-top: 1px solid var(--gold-soft);
@@ -173,22 +183,29 @@ a {
   display: none;
 }
 
+/* short vertical tick from the horizontal bar down to each child node */
+.tree li::after {
+  content: "";
+  position: absolute;
+  top: 1.5rem;
+  left: 50%;
+  width: 0;
+  height: 1rem;
+  border-left: 1px solid var(--gold-soft);
+}
+
 .tree > li::before,
 .tree > li::after {
   display: none;
 }
 
-.tree ul::before {
-  content: "";
-  display: block;
-  width: 0;
-  height: 1.6rem;
-  margin: 0 auto;
-  border-left: 1px solid var(--gold-soft);
+.tree > li {
+  padding-top: 0;
 }
 
 .tree a {
   display: inline-block;
+  position: relative;
   font-family: var(--serif);
   font-size: 0.85rem;
   letter-spacing: 0.03em;
@@ -199,6 +216,17 @@ a {
   border-radius: 2px;
   white-space: nowrap;
   transition: border-color 0.2s ease, color 0.2s ease;
+}
+
+/* stem connecting a parent node down to the horizontal bar above its children */
+.tree a.branch::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  width: 0;
+  height: 1.5rem;
+  border-left: 1px solid var(--gold-soft);
 }
 
 .tree a:hover {
@@ -328,11 +356,9 @@ a {
     padding-left: 0;
   }
 
-  .tree li::before {
-    display: none;
-  }
-
-  .tree ul::before {
+  .tree li::before,
+  .tree li::after,
+  .tree a.branch::after {
     display: none;
   }
 
