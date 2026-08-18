@@ -92,6 +92,37 @@
   td.empty {
     color: #6a655c;
   }
+  .chart {
+    max-width: 900px;
+    margin: 0 auto 1.2rem;
+    background: #111110;
+    border: 1px solid rgba(201, 162, 39, 0.35);
+    border-radius: 4px;
+    padding: 1rem 1.2rem;
+    overflow-x: auto;
+  }
+  .chart svg {
+    display: block;
+  }
+  .chart-legend {
+    display: flex;
+    gap: 1rem;
+    margin-top: 0.6rem;
+    font-size: 0.78rem;
+    color: #a39d8f;
+    flex-wrap: wrap;
+  }
+  .chart-legend-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+  .chart-legend-item i {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+  }
 </style>
 </head>
 <body>
@@ -114,6 +145,7 @@
   </div>
 
   <h2>Pages les plus vues (30j)</h2>
+  {{ charts.top_pages }}
   <table>
     <tr><th>Page</th><th>Vues</th></tr>
     {% for path, n in top_pages %}
@@ -124,6 +156,7 @@
   </table>
 
   <h2>Liens les plus cliqués (30j)</h2>
+  {{ charts.top_clicks }}
   <table>
     <tr><th>Lien</th><th>Clics</th></tr>
     {% for target, n in top_clicks %}

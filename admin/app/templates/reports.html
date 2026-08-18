@@ -121,6 +121,18 @@
     color: #c9a227;
     border-color: #c9a227;
   }
+  .chart {
+    max-width: 900px;
+    margin: 0 auto 1.2rem;
+    background: #111110;
+    border: 1px solid rgba(201, 162, 39, 0.35);
+    border-radius: 4px;
+    padding: 1rem 1.2rem;
+    overflow-x: auto;
+  }
+  .chart svg {
+    display: block;
+  }
 </style>
 </head>
 <body>
@@ -137,6 +149,11 @@
     </div>
   </div>
   <div class="subtitle">Générés automatiquement le dernier jour de chaque mois (rapport mensuel) et le 31 décembre (rapport annuel).</div>
+
+  <h2>Pages vues par mois</h2>
+  {{ charts.pageviews_trend }}
+  <h2>Visiteurs uniques par mois</h2>
+  {{ charts.visitors_trend }}
 
   <h2>Mensuels</h2>
   <div class="export-links standalone">Tout télécharger : {{ macros.export_links("/admin/reports", "monthly", "all") }}</div>

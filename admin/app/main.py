@@ -14,6 +14,7 @@ from fastapi import FastAPI, Form, HTTPException, Request
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, Response
 from fastapi.templating import Jinja2Templates
 from itsdangerous import BadSignature, SignatureExpired, URLSafeTimedSerializer
+from markupsafe import Markup
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4
 from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
@@ -63,6 +64,15 @@ FEATURE_LABELS = {
     "contact": "Contact",
     "share": "Partager le bot",
     "help": "Aide / démarrage",
+}
+
+LANGUAGE_LABELS = {
+    "fr": "Français",
+    "en": "English",
+    "pt": "Português",
+    "es": "Español",
+    "ru": "Русский",
+    "de": "Deutsch",
 }
 
 serializer = URLSafeTimedSerializer(SESSION_SECRET)
@@ -414,6 +424,201 @@ def fetch_bot_stats() -> dict | None:
         return None
 
 
+# --- charts (inline SVG, no JS dependency) -------------------------------
+#
+# Palette: gold (brand accent) as the single sequential hue for magnitude/
+# trend charts; the existing drop/rise greens/reds as the status pair; the
+# validated 8-hue dark-mode categorical set (see the dataviz skill's
+# reference palette) for fixed-identity series (languages, features), always
+# assigned in the same fixed order so a given language/feature keeps the
+# same color across every chart.
+CHART_GOLD = "#c9a227"
+CHART_GOOD = "#7fd88f"  # price drops
+CHART_BAD = "#ff8a8a"  # price rises
+CHART_SURFACE = "#111110"
+CHART_GRID = "rgba(255,255,255,0.08)"
+CHART_TEXT = "#a39d8f"
+CHART_CATEGORICAL = [
+    "#3987e5", "#d95926", "#199e70", "#c98500",
+    "#d55181", "#008300", "#9085e9", "#e66767",
+]
+
+
+def _esc(s: str) -> str:
+    return (
+        str(s).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace('"', "&quot;")
+    )
+
+
+def svg_line_chart(points: list[tuple[str, float]], color: str = CHART_GOLD, width: int = 820, height: int = 160) -> Markup:
+    if not points:
+        return Markup('<p class="empty">Aucune donnée pour l\'instant.</p>')
+    pad_l, pad_r, pad_t, pad_b = 8, 8, 16, 24
+    plot_w = width - pad_l - pad_r
+    plot_h = height - pad_t - pad_b
+    values = [v for _, v in points]
+    vmin, vmax = min(0, min(values)), max(values) or 1
+    span = (vmax - vmin) or 1
+    n = len(points)
+    step = plot_w / max(n - 1, 1)
+
+    def xy(i, v):
+        x = pad_l + i * step
+        y = pad_t + plot_h - (v - vmin) / span * plot_h
+        return x, y
+
+    coords = [xy(i, v) for i, (_, v) in enumerate(points)]
+    path = " ".join(f"{'M' if i == 0 else 'L'}{x:.1f},{y:.1f}" for i, (x, y) in enumerate(coords))
+    baseline_y = pad_t + plot_h
+    dots = []
+    labels = []
+    for i, ((label, value), (x, y)) in enumerate(zip(points, coords)):
+        dots.append(
+            f'<circle cx="{x:.1f}" cy="{y:.1f}" r="4" fill="{color}" stroke="{CHART_SURFACE}" stroke-width="2">'
+            f"<title>{_esc(label)} — {value:g}</title></circle>"
+        )
+        if i == 0 or i == n - 1 or i == n // 2:
+            labels.append(
+                f'<text x="{x:.1f}" y="{height - 6}" font-size="10" fill="{CHART_TEXT}" text-anchor="middle">{_esc(label)}</text>'
+            )
+    last_x, last_y = coords[-1]
+    end_label = f'<text x="{last_x:.1f}" y="{last_y - 10:.1f}" font-size="11" fill="{CHART_TEXT}" text-anchor="end">{values[-1]:g}</text>'
+    svg = (
+        f'<svg viewBox="0 0 {width} {height}" width="100%" height="{height}" role="img" '
+        f'aria-label="Graphique en ligne">'
+        f'<line x1="{pad_l}" y1="{baseline_y:.1f}" x2="{width - pad_r}" y2="{baseline_y:.1f}" '
+        f'stroke="{CHART_GRID}" stroke-width="1"/>'
+        f'<path d="{path}" fill="none" stroke="{color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>'
+        f"{''.join(dots)}{end_label}{''.join(labels)}"
+        f"</svg>"
+    )
+    return Markup(f'<div class="chart">{svg}</div>')
+
+
+def svg_bar_chart_h(items: list[tuple[str, float, str]], width: int = 820) -> Markup:
+    """items: (label, value, color) — order is preserved (caller sorts)."""
+    if not items:
+        return Markup('<p class="empty">Aucune donnée pour l\'instant.</p>')
+    row_h, gap, label_w, pad_r = 22, 8, 200, 56
+    plot_w = width - label_w - pad_r
+    vmax = max(v for _, v, _ in items) or 1
+    height = len(items) * (row_h + gap)
+    rows = []
+    for i, (label, value, color) in enumerate(items):
+        y = i * (row_h + gap)
+        bar_w = max(plot_w * value / vmax, 2)
+        rows.append(
+            f'<text x="{label_w - 8}" y="{y + row_h / 2 + 4:.1f}" font-size="11" fill="{CHART_TEXT}" '
+            f'text-anchor="end">{_esc(label)}</text>'
+            f'<rect x="{label_w}" y="{y}" width="{bar_w:.1f}" height="{row_h}" rx="4" fill="{color}">'
+            f"<title>{_esc(label)} — {value:g}</title></rect>"
+            f'<text x="{label_w + bar_w + 6:.1f}" y="{y + row_h / 2 + 4:.1f}" font-size="11" fill="{CHART_TEXT}">{value:g}</text>'
+        )
+    svg = (
+        f'<svg viewBox="0 0 {width} {height}" width="100%" height="{height}" role="img" '
+        f'aria-label="Graphique en barres">{"".join(rows)}</svg>'
+    )
+    return Markup(f'<div class="chart">{svg}</div>')
+
+
+def svg_grouped_bar_chart(labels: list[str], series: list[tuple[str, str, list[float]]], width: int = 820, height: int = 200) -> Markup:
+    """series: list of (name, color, values) — one value per label, same length as labels."""
+    if not labels or not series:
+        return Markup('<p class="empty">Aucune donnée pour l\'instant.</p>')
+    pad_l, pad_r, pad_t, pad_b = 8, 8, 12, 24
+    plot_w = width - pad_l - pad_r
+    plot_h = height - pad_t - pad_b
+    vmax = max((v for _, _, vals in series for v in vals), default=0) or 1
+    group_w = plot_w / len(labels)
+    n_series = len(series)
+    bar_w = min(24, (group_w - 8) / n_series)
+    baseline_y = pad_t + plot_h
+
+    bars = []
+    for gi, label in enumerate(labels):
+        group_x = pad_l + gi * group_w + (group_w - bar_w * n_series) / 2
+        for si, (name, color, values) in enumerate(series):
+            value = values[gi]
+            bar_h = plot_h * value / vmax
+            x = group_x + si * bar_w
+            y = baseline_y - bar_h
+            bars.append(
+                f'<rect x="{x:.1f}" y="{y:.1f}" width="{max(bar_w - 2, 1):.1f}" height="{bar_h:.1f}" rx="3" fill="{color}">'
+                f"<title>{_esc(name)} — {_esc(label)} — {value:g}</title></rect>"
+            )
+        bars.append(
+            f'<text x="{pad_l + gi * group_w + group_w / 2:.1f}" y="{height - 6}" font-size="10" '
+            f'fill="{CHART_TEXT}" text-anchor="middle">{_esc(label)}</text>'
+        )
+    legend = "".join(
+        f'<span class="chart-legend-item"><i style="background:{color}"></i>{_esc(name)}</span>'
+        for name, color, _ in series
+    )
+    svg = (
+        f'<svg viewBox="0 0 {width} {height}" width="100%" height="{height}" role="img" '
+        f'aria-label="Graphique en barres groupées">'
+        f'<line x1="{pad_l}" y1="{baseline_y:.1f}" x2="{width - pad_r}" y2="{baseline_y:.1f}" '
+        f'stroke="{CHART_GRID}" stroke-width="1"/>'
+        f"{''.join(bars)}</svg>"
+    )
+    return Markup(f'<div class="chart">{svg}<div class="chart-legend">{legend}</div></div>')
+
+
+def build_bot_charts(stats: dict) -> dict:
+    charts = {}
+
+    languages = stats.get("languages") or {}
+    charts["languages"] = svg_bar_chart_h(
+        [
+            (LANGUAGE_LABELS.get(code, code), n, CHART_CATEGORICAL[i % len(CHART_CATEGORICAL)])
+            for i, code in enumerate(LANGUAGE_LABELS)
+            if (n := languages.get(code, 0)) > 0
+        ]
+    )
+
+    features_30d = stats.get("features_30d") or {}
+    charts["features"] = svg_bar_chart_h(
+        [
+            (label, features_30d.get(key, 0), CHART_CATEGORICAL[i % len(CHART_CATEGORICAL)])
+            for i, (key, label) in enumerate(FEATURE_LABELS.items())
+        ]
+    )
+
+    monthly = list(reversed(stats.get("monthly") or []))  # chronological
+    charts["users_trend"] = svg_line_chart(
+        [(r["period_label"], r["total_users"]) for r in monthly]
+    )
+    charts["tracks_trend"] = svg_line_chart(
+        [(r["period_label"], r["total_tracks"]) for r in monthly]
+    )
+    charts["price_changes"] = svg_grouped_bar_chart(
+        [r["period_label"] for r in monthly],
+        [
+            ("Baisses de prix", CHART_GOOD, [r["price_drops"] for r in monthly]),
+            ("Hausses de prix", CHART_BAD, [r["price_rises"] for r in monthly]),
+        ],
+    )
+
+    for period_type in ("weekly", "monthly", "yearly"):
+        rows = stats.get(period_type) or []
+        top = rows[0]["top_products"] if rows else []
+        charts[f"top_products_{period_type}"] = svg_bar_chart_h(
+            [(name, n, CHART_GOLD) for name, n in top]
+        )
+
+    return charts
+
+
+def build_site_charts(reports: list) -> dict:
+    monthly = sorted(
+        [r for r in reports if r.period_type == "monthly"], key=lambda r: r.period_label
+    )
+    return {
+        "pageviews_trend": svg_line_chart([(r.period_label, r.total_pageviews) for r in monthly]),
+        "visitors_trend": svg_line_chart([(r.period_label, r.unique_visitors) for r in monthly]),
+    }
+
+
 def table_pdf_bytes(title: str, headers: list[str], rows: list[list[str]]) -> bytes:
     buffer = io.BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=A4)
@@ -485,6 +690,8 @@ def bot_amazon_price_tracker_page(request: Request):
             "title": "Amazon Price Tracker",
             "stats": stats,
             "feature_labels": FEATURE_LABELS,
+            "language_labels": LANGUAGE_LABELS,
+            "charts": build_bot_charts(stats) if stats else {},
         },
     )
 
@@ -708,6 +915,11 @@ def stats_page(request: Request):
     finally:
         db.close()
 
+    charts = {
+        "top_pages": svg_bar_chart_h([(p, n, CHART_GOLD) for p, n in top_pages]),
+        "top_clicks": svg_bar_chart_h([(t, n, CHART_GOLD) for t, n in top_clicks]),
+    }
+
     return templates.TemplateResponse(
         "stats.html",
         {
@@ -718,6 +930,7 @@ def stats_page(request: Request):
             "top_pages": top_pages,
             "top_clicks": top_clicks,
             "recent": recent,
+            "charts": charts,
         },
     )
 
@@ -776,7 +989,12 @@ def reports_page(request: Request):
 
     return templates.TemplateResponse(
         "reports.html",
-        {"request": request, "monthly": monthly, "yearly": yearly},
+        {
+            "request": request,
+            "monthly": monthly,
+            "yearly": yearly,
+            "charts": build_site_charts(reports),
+        },
     )
 
 

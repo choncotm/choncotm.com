@@ -142,6 +142,49 @@
   .scroll-x table {
     margin: 0;
   }
+  .chart {
+    max-width: 900px;
+    margin: 0 auto 1.2rem;
+    background: #111110;
+    border: 1px solid rgba(201, 162, 39, 0.35);
+    border-radius: 4px;
+    padding: 1rem 1.2rem;
+    overflow-x: auto;
+  }
+  .chart svg {
+    display: block;
+  }
+  .chart-legend {
+    display: flex;
+    gap: 1rem;
+    margin-top: 0.6rem;
+    font-size: 0.78rem;
+    color: #a39d8f;
+    flex-wrap: wrap;
+  }
+  .chart-legend-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+  .chart-legend-item i {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+  }
+  .charts-row {
+    display: flex;
+    gap: 1rem;
+    max-width: 900px;
+    margin: 0 auto;
+    flex-wrap: wrap;
+  }
+  .charts-row .chart {
+    flex: 1;
+    min-width: 280px;
+    margin: 0 0 1.2rem;
+  }
 </style>
 </head>
 <body>
@@ -171,12 +214,26 @@
     <div class="card"><div class="n rise">{{ stats.price_rises_30d }}</div><div class="l">Hausses de prix (30j)</div></div>
   </div>
 
+  <h2>Évolution mensuelle</h2>
+  <div class="charts-row">
+    <div>
+      <h2>Utilisateurs</h2>
+      {{ charts.users_trend }}
+    </div>
+    <div>
+      <h2>Produits suivis</h2>
+      {{ charts.tracks_trend }}
+    </div>
+  </div>
+  <h2>Baisses / hausses de prix par mois</h2>
+  {{ charts.price_changes }}
+
   <h2>Utilisateurs par langue</h2>
+  {{ charts.languages }}
   <table>
     <tr><th>Langue</th><th>Utilisateurs</th></tr>
-    {% set lang_labels = {"fr": "Français", "en": "English", "pt": "Português", "es": "Español", "ru": "Русский", "de": "Deutsch"} %}
     {% for code, n in stats.languages.items()|sort(attribute="1", reverse=true) %}
-    <tr><td>{{ lang_labels.get(code, code) }}</td><td>{{ n }}</td></tr>
+    <tr><td>{{ language_labels.get(code, code) }}</td><td>{{ n }}</td></tr>
     {% else %}
     <tr><td class="empty" colspan="2">Aucune donnée pour l'instant.</td></tr>
     {% endfor %}
@@ -258,6 +315,8 @@
   </table>
 
   <h2>Top 10 produits les plus suivis</h2>
+  <h2 style="font-size: 0.9rem; color: #a39d8f;">Cette semaine</h2>
+  {{ charts.top_products_weekly }}
   <table>
     <tr><th>Cette semaine</th><th>Nouveaux suiveurs</th></tr>
     {% if stats.weekly %}
@@ -270,6 +329,8 @@
     <tr><td class="empty" colspan="2">Aucun rapport pour l'instant.</td></tr>
     {% endif %}
   </table>
+  <h2 style="font-size: 0.9rem; color: #a39d8f;">Ce mois</h2>
+  {{ charts.top_products_monthly }}
   <table>
     <tr><th>Ce mois</th><th>Nouveaux suiveurs</th></tr>
     {% if stats.monthly %}
@@ -282,6 +343,8 @@
     <tr><td class="empty" colspan="2">Aucun rapport pour l'instant.</td></tr>
     {% endif %}
   </table>
+  <h2 style="font-size: 0.9rem; color: #a39d8f;">Cette année</h2>
+  {{ charts.top_products_yearly }}
   <table>
     <tr><th>Cette année</th><th>Nouveaux suiveurs</th></tr>
     {% if stats.yearly %}
@@ -296,6 +359,7 @@
   </table>
 
   <h2>Fonctionnalités — 30 derniers jours</h2>
+  {{ charts.features }}
   <table>
     <tr><th>Fonctionnalité</th><th>Utilisations</th></tr>
     {% for key, label in feature_labels.items() %}
