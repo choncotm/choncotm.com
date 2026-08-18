@@ -17,7 +17,7 @@ SESSION_SECRET = os.environ["SESSION_SECRET"]
 DATABASE_URL = os.environ["DATABASE_URL"]
 
 COOKIE_NAME = "admin_session"
-SESSION_MAX_AGE = 60 * 60 * 12  # 12h
+SESSION_MAX_AGE = 60 * 60  # 1h, enforced server-side regardless of cookie lifetime
 MAX_ATTEMPTS = 5
 LOCKOUT_SECONDS = 300
 
@@ -127,7 +127,8 @@ def login(request: Request, username: str = Form(...), password: str = Form(...)
         httponly=True,
         secure=True,
         samesite="strict",
-        max_age=SESSION_MAX_AGE,
+        # no max_age: browser-session cookie, cleared when the browser closes.
+        # server still enforces the 1h SESSION_MAX_AGE on the signed token.
     )
     return resp
 
