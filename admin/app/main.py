@@ -1,4 +1,6 @@
+import csv
 import hashlib
+import io
 import os
 import time
 from datetime import datetime, timedelta, timezone
@@ -8,9 +10,13 @@ import httpx
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.cron import CronTrigger
 from fastapi import FastAPI, Form, HTTPException, Request
-from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, Response
 from fastapi.templating import Jinja2Templates
 from itsdangerous import BadSignature, SignatureExpired, URLSafeTimedSerializer
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import A4
+from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
+from reportlab.lib.styles import getSampleStyleSheet
 from sqlalchemy import (
     JSON,
     Boolean,
@@ -45,6 +51,17 @@ RESOURCE_KEYS = {key for key, _label in AVAILABLE_RESOURCES}
 RESOURCE_LABELS = dict(AVAILABLE_RESOURCES)
 RESOURCE_URLS = {
     "amazon_price_tracker": "/admin/bots/amazon-price-tracker",
+}
+
+FEATURE_LABELS = {
+    "track": "Suivre un produit",
+    "list": "Lister mes produits",
+    "untrack": "Arrêter de suivre",
+    "history": "Historique des prix",
+    "language": "Changer de langue",
+    "contact": "Contact",
+    "share": "Partager le bot",
+    "help": "Aide / démarrage",
 }
 
 serializer = URLSafeTimedSerializer(SESSION_SECRET)
@@ -396,6 +413,50 @@ def fetch_bot_stats() -> dict | None:
         return None
 
 
+def report_pdf_bytes(title: str, rows: list[tuple[str, str]]) -> bytes:
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=A4)
+    styles = getSampleStyleSheet()
+    table = Table([("Métrique", "Valeur")] + rows, colWidths=[260, 200])
+    table.setStyle(
+        TableStyle(
+            [
+                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#c9a227")),
+                ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+                ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#dddddd")),
+                ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                ("FONTSIZE", (0, 0), (-1, -1), 9),
+            ]
+        )
+    )
+    doc.build([Paragraph(title, styles["Title"]), Spacer(1, 12), table])
+    return buffer.getvalue()
+
+
+def report_csv_bytes(rows: list[tuple[str, str]]) -> bytes:
+    buffer = io.StringIO()
+    writer = csv.writer(buffer)
+    writer.writerow(["Métrique", "Valeur"])
+    writer.writerows(rows)
+    return buffer.getvalue().encode("utf-8-sig")  # BOM so Excel picks up UTF-8
+
+
+def export_response(period_type: str, period_label: str, fmt: str, source: str, title: str, rows: list[tuple[str, str]]):
+    if fmt == "pdf":
+        content = report_pdf_bytes(title, rows)
+        media_type = "application/pdf"
+    else:
+        content = report_csv_bytes(rows)
+        media_type = "text/csv"
+    filename = f"{source}-{period_type}-{period_label}.{fmt}"
+    return Response(
+        content=content,
+        media_type=media_type,
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
+
+
 @app.get("/admin/bots/amazon-price-tracker", response_class=HTMLResponse)
 def bot_amazon_price_tracker_page(request: Request):
     user = require_resource(request, "amazon_price_tracker")
@@ -417,7 +478,65 @@ def bot_amazon_price_tracker_page(request: Request):
             "user": user,
             "title": "Amazon Price Tracker",
             "stats": stats,
+            "feature_labels": FEATURE_LABELS,
         },
+    )
+
+
+def _find_period(rows: list[dict], period_label: str) -> dict | None:
+    return next((r for r in rows if r["period_label"] == period_label), None)
+
+
+@app.get("/admin/bots/amazon-price-tracker/reports/{period_type}/{period_label}.{fmt}")
+def bot_report_export(request: Request, period_type: str, period_label: str, fmt: str):
+    user = require_resource(request, "amazon_price_tracker")
+    if not user:
+        return RedirectResponse("/admin", status_code=303)
+    if fmt not in ("pdf", "csv"):
+        raise HTTPException(status_code=404)
+
+    stats = fetch_bot_stats()
+    if not stats:
+        raise HTTPException(status_code=503, detail="Service de stats indisponible")
+    report = _find_period(stats.get(period_type, []), period_label)
+    if not report:
+        raise HTTPException(status_code=404)
+
+    rows = [
+        ("Utilisateurs totaux", str(report["total_users"])),
+        ("Nouveaux utilisateurs", str(report["new_users"])),
+        ("Produits suivis", str(report["total_tracks"])),
+        ("Nouveaux produits suivis", str(report["new_tracks"])),
+        ("Baisses de prix", str(report["price_drops"])),
+        ("Hausses de prix", str(report["price_rises"])),
+    ] + [(f"Top produit — {name}", str(n)) for name, n in report.get("top_products", [])]
+    title = f"Amazon Price Tracker — rapport {period_type} {period_label}"
+    return export_response(period_type, period_label, fmt, "amazon-price-tracker", title, rows)
+
+
+@app.get("/admin/bots/amazon-price-tracker/features/{period_type}/{period_label}.{fmt}")
+def bot_feature_report_export(request: Request, period_type: str, period_label: str, fmt: str):
+    user = require_resource(request, "amazon_price_tracker")
+    if not user:
+        return RedirectResponse("/admin", status_code=303)
+    if fmt not in ("pdf", "csv"):
+        raise HTTPException(status_code=404)
+
+    stats = fetch_bot_stats()
+    if not stats:
+        raise HTTPException(status_code=503, detail="Service de stats indisponible")
+    report = _find_period(
+        stats.get("feature_reports", {}).get(period_type, []), period_label
+    )
+    if not report:
+        raise HTTPException(status_code=404)
+
+    rows = [
+        (FEATURE_LABELS.get(key, key), str(n)) for key, n in report["features"].items()
+    ]
+    title = f"Amazon Price Tracker — fonctionnalités {period_type} {period_label}"
+    return export_response(
+        period_type, period_label, fmt, "amazon-price-tracker-features", title, rows
     )
 
 
@@ -539,6 +658,35 @@ def reports_page(request: Request):
         "reports.html",
         {"request": request, "monthly": monthly, "yearly": yearly},
     )
+
+
+@app.get("/admin/reports/{period_type}/{period_label}.{fmt}")
+def site_report_export(request: Request, period_type: str, period_label: str, fmt: str):
+    if not require_owner(request):
+        return RedirectResponse("/admin", status_code=303)
+    if fmt not in ("pdf", "csv"):
+        raise HTTPException(status_code=404)
+
+    db = SessionLocal()
+    try:
+        report = (
+            db.query(Report)
+            .filter_by(period_type=period_type, period_label=period_label)
+            .first()
+        )
+    finally:
+        db.close()
+    if not report:
+        raise HTTPException(status_code=404)
+
+    rows = [
+        ("Pages vues", str(report.total_pageviews)),
+        ("Visiteurs uniques", str(report.unique_visitors)),
+    ]
+    rows += [(f"Page — {p}", str(n)) for p, n in report.top_pages]
+    rows += [(f"Lien — {t}", str(n)) for t, n in report.top_clicks]
+    title = f"choncotm.com — rapport {period_type} {period_label}"
+    return export_response(period_type, period_label, fmt, "choncotm-site", title, rows)
 
 
 @app.get("/admin/users", response_class=HTMLResponse)

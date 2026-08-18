@@ -102,9 +102,25 @@
     color: #6a655c;
     font-size: 0.85rem;
   }
+  .export-links {
+    margin-top: 0.8rem;
+  }
+  .export-links a {
+    color: #a39d8f;
+    font-size: 0.78rem;
+    text-decoration: none;
+    border: 1px solid rgba(201, 162, 39, 0.25);
+    border-radius: 2px;
+    padding: 0.25rem 0.55rem;
+  }
+  .export-links a:hover {
+    color: #c9a227;
+    border-color: #c9a227;
+  }
 </style>
 </head>
 <body>
+{% import "_macros.html" as macros %}
   <div class="top">
     <h1>Rapports</h1>
     <div class="links">
@@ -137,6 +153,7 @@
       <tr><td>{{ target }}</td><td>{{ n }}</td></tr>
       {% endfor %}
     </table>
+    <div class="export-links">{{ macros.export_links("/admin/reports", "monthly", r.period_label) }}</div>
   </details>
   {% else %}
   <p class="empty">Aucun rapport mensuel pour l'instant &mdash; le premier sera généré le 1er du mois prochain.</p>
@@ -161,6 +178,7 @@
       <tr><td>{{ target }}</td><td>{{ n }}</td></tr>
       {% endfor %}
     </table>
+    <div class="export-links">{{ macros.export_links("/admin/reports", "yearly", r.period_label) }}</div>
   </details>
   {% else %}
   <p class="empty">Aucun rapport annuel pour l'instant &mdash; le premier sera généré le 1er janvier prochain.</p>

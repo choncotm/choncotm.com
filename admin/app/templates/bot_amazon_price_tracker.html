@@ -116,9 +116,31 @@
   .rise {
     color: #ff8a8a;
   }
+  .export-links a {
+    color: #a39d8f;
+    font-size: 0.78rem;
+    text-decoration: none;
+    border: 1px solid rgba(201, 162, 39, 0.25);
+    border-radius: 2px;
+    padding: 0.2rem 0.45rem;
+    white-space: nowrap;
+  }
+  .export-links a:hover {
+    color: #c9a227;
+    border-color: #c9a227;
+  }
+  .scroll-x {
+    max-width: 900px;
+    margin: 0 auto 2.5rem;
+    overflow-x: auto;
+  }
+  .scroll-x table {
+    margin: 0;
+  }
 </style>
 </head>
 <body>
+{% import "_macros.html" as macros %}
   <div class="top">
     <h1>{{ title }}</h1>
     <div class="links">
@@ -172,7 +194,7 @@
 
   <h2>Rapports hebdomadaires</h2>
   <table>
-    <tr><th>Semaine</th><th>Utilisateurs</th><th>Nouveaux</th><th>Produits suivis</th><th>Nouveaux</th><th>Baisses</th><th>Hausses</th></tr>
+    <tr><th>Semaine</th><th>Utilisateurs</th><th>Nouveaux</th><th>Produits suivis</th><th>Nouveaux</th><th>Baisses</th><th>Hausses</th><th>Export</th></tr>
     {% for r in stats.weekly %}
     <tr>
       <td>{{ r.period_label }}</td>
@@ -182,15 +204,16 @@
       <td>{{ r.new_tracks }}</td>
       <td class="drop">{{ r.price_drops }}</td>
       <td class="rise">{{ r.price_rises }}</td>
+      <td class="export-links">{{ macros.export_links("/admin/bots/amazon-price-tracker/reports", "weekly", r.period_label) }}</td>
     </tr>
     {% else %}
-    <tr><td class="empty" colspan="7">Aucun rapport pour l'instant — généré automatiquement chaque lundi dans la nuit.</td></tr>
+    <tr><td class="empty" colspan="8">Aucun rapport pour l'instant — généré automatiquement chaque lundi dans la nuit.</td></tr>
     {% endfor %}
   </table>
 
   <h2>Rapports mensuels</h2>
   <table>
-    <tr><th>Mois</th><th>Utilisateurs</th><th>Nouveaux</th><th>Produits suivis</th><th>Nouveaux</th><th>Baisses</th><th>Hausses</th></tr>
+    <tr><th>Mois</th><th>Utilisateurs</th><th>Nouveaux</th><th>Produits suivis</th><th>Nouveaux</th><th>Baisses</th><th>Hausses</th><th>Export</th></tr>
     {% for r in stats.monthly %}
     <tr>
       <td>{{ r.period_label }}</td>
@@ -200,15 +223,16 @@
       <td>{{ r.new_tracks }}</td>
       <td class="drop">{{ r.price_drops }}</td>
       <td class="rise">{{ r.price_rises }}</td>
+      <td class="export-links">{{ macros.export_links("/admin/bots/amazon-price-tracker/reports", "monthly", r.period_label) }}</td>
     </tr>
     {% else %}
-    <tr><td class="empty" colspan="7">Aucun rapport pour l'instant — généré automatiquement chaque 1er du mois.</td></tr>
+    <tr><td class="empty" colspan="8">Aucun rapport pour l'instant — généré automatiquement chaque 1er du mois.</td></tr>
     {% endfor %}
   </table>
 
   <h2>Rapports annuels</h2>
   <table>
-    <tr><th>Année</th><th>Utilisateurs</th><th>Nouveaux</th><th>Produits suivis</th><th>Nouveaux</th><th>Baisses</th><th>Hausses</th></tr>
+    <tr><th>Année</th><th>Utilisateurs</th><th>Nouveaux</th><th>Produits suivis</th><th>Nouveaux</th><th>Baisses</th><th>Hausses</th><th>Export</th></tr>
     {% for r in stats.yearly %}
     <tr>
       <td>{{ r.period_label }}</td>
@@ -218,11 +242,106 @@
       <td>{{ r.new_tracks }}</td>
       <td class="drop">{{ r.price_drops }}</td>
       <td class="rise">{{ r.price_rises }}</td>
+      <td class="export-links">{{ macros.export_links("/admin/bots/amazon-price-tracker/reports", "yearly", r.period_label) }}</td>
     </tr>
     {% else %}
-    <tr><td class="empty" colspan="7">Aucun rapport pour l'instant — généré automatiquement chaque 1er janvier.</td></tr>
+    <tr><td class="empty" colspan="8">Aucun rapport pour l'instant — généré automatiquement chaque 1er janvier.</td></tr>
     {% endfor %}
   </table>
+
+  <h2>Top 10 produits les plus suivis</h2>
+  <table>
+    <tr><th>Cette semaine</th><th>Nouveaux suiveurs</th></tr>
+    {% if stats.weekly %}
+    {% for name, n in stats.weekly[0].top_products %}
+    <tr><td>{{ name }}</td><td>{{ n }}</td></tr>
+    {% else %}
+    <tr><td class="empty" colspan="2">Aucune donnée pour l'instant.</td></tr>
+    {% endfor %}
+    {% else %}
+    <tr><td class="empty" colspan="2">Aucun rapport pour l'instant.</td></tr>
+    {% endif %}
+  </table>
+  <table>
+    <tr><th>Ce mois</th><th>Nouveaux suiveurs</th></tr>
+    {% if stats.monthly %}
+    {% for name, n in stats.monthly[0].top_products %}
+    <tr><td>{{ name }}</td><td>{{ n }}</td></tr>
+    {% else %}
+    <tr><td class="empty" colspan="2">Aucune donnée pour l'instant.</td></tr>
+    {% endfor %}
+    {% else %}
+    <tr><td class="empty" colspan="2">Aucun rapport pour l'instant.</td></tr>
+    {% endif %}
+  </table>
+  <table>
+    <tr><th>Cette année</th><th>Nouveaux suiveurs</th></tr>
+    {% if stats.yearly %}
+    {% for name, n in stats.yearly[0].top_products %}
+    <tr><td>{{ name }}</td><td>{{ n }}</td></tr>
+    {% else %}
+    <tr><td class="empty" colspan="2">Aucune donnée pour l'instant.</td></tr>
+    {% endfor %}
+    {% else %}
+    <tr><td class="empty" colspan="2">Aucun rapport pour l'instant.</td></tr>
+    {% endif %}
+  </table>
+
+  <h2>Fonctionnalités — 30 derniers jours</h2>
+  <table>
+    <tr><th>Fonctionnalité</th><th>Utilisations</th></tr>
+    {% for key, label in feature_labels.items() %}
+    <tr><td>{{ label }}</td><td>{{ stats.features_30d.get(key, 0) }}</td></tr>
+    {% endfor %}
+  </table>
+
+  <h2>Fonctionnalités — rapports hebdomadaires</h2>
+  <div class="scroll-x">
+  <table>
+    <tr><th>Semaine</th>{% for key, label in feature_labels.items() %}<th>{{ label }}</th>{% endfor %}<th>Export</th></tr>
+    {% for r in stats.feature_reports.weekly %}
+    <tr>
+      <td>{{ r.period_label }}</td>
+      {% for key, label in feature_labels.items() %}<td>{{ r.features.get(key, 0) }}</td>{% endfor %}
+      <td class="export-links">{{ macros.export_links("/admin/bots/amazon-price-tracker/features", "weekly", r.period_label) }}</td>
+    </tr>
+    {% else %}
+    <tr><td class="empty" colspan="{{ feature_labels|length + 2 }}">Aucun rapport pour l'instant.</td></tr>
+    {% endfor %}
+  </table>
+  </div>
+
+  <h2>Fonctionnalités — rapports mensuels</h2>
+  <div class="scroll-x">
+  <table>
+    <tr><th>Mois</th>{% for key, label in feature_labels.items() %}<th>{{ label }}</th>{% endfor %}<th>Export</th></tr>
+    {% for r in stats.feature_reports.monthly %}
+    <tr>
+      <td>{{ r.period_label }}</td>
+      {% for key, label in feature_labels.items() %}<td>{{ r.features.get(key, 0) }}</td>{% endfor %}
+      <td class="export-links">{{ macros.export_links("/admin/bots/amazon-price-tracker/features", "monthly", r.period_label) }}</td>
+    </tr>
+    {% else %}
+    <tr><td class="empty" colspan="{{ feature_labels|length + 2 }}">Aucun rapport pour l'instant.</td></tr>
+    {% endfor %}
+  </table>
+  </div>
+
+  <h2>Fonctionnalités — rapports annuels</h2>
+  <div class="scroll-x">
+  <table>
+    <tr><th>Année</th>{% for key, label in feature_labels.items() %}<th>{{ label }}</th>{% endfor %}<th>Export</th></tr>
+    {% for r in stats.feature_reports.yearly %}
+    <tr>
+      <td>{{ r.period_label }}</td>
+      {% for key, label in feature_labels.items() %}<td>{{ r.features.get(key, 0) }}</td>{% endfor %}
+      <td class="export-links">{{ macros.export_links("/admin/bots/amazon-price-tracker/features", "yearly", r.period_label) }}</td>
+    </tr>
+    {% else %}
+    <tr><td class="empty" colspan="{{ feature_labels|length + 2 }}">Aucun rapport pour l'instant.</td></tr>
+    {% endfor %}
+  </table>
+  </div>
 
   {% endif %}
 </body>
