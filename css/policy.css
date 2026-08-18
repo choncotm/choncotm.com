@@ -6,6 +6,22 @@ main {
   margin: 0 auto;
   padding: 3rem 1.5rem 5rem;
 }
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 2rem;
+  padding: 0.5rem 1rem;
+  border: 1px solid rgba(201, 162, 39, 0.35);
+  border-radius: 2px;
+  color: #c9a227;
+  text-decoration: none;
+  font-size: 0.85rem;
+}
+.back-link:hover {
+  border-color: #c9a227;
+  background: rgba(201, 162, 39, 0.08);
+}
 h1 {
   font-size: 1.6rem;
   font-weight: 600;
