@@ -2,7 +2,7 @@ const translations = {
   fr: {
     "nav.home": "Accueil",
     "nav.projects": "Projets",
-    "nav.projectsHint": "(cliquer)",
+    "nav.projectsHint": "(cliquez)",
     "nav.contact": "Contact",
     "hero.tagline": "Développeur indépendant — cybersécurité, services, logiciels, petits outils, bots et sites, faits avec soin.",
     "projects.heading": "Projets",
