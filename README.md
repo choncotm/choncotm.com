@@ -2,16 +2,32 @@
 
 Source code for [choncotm.com](https://choncotm.com) — my personal site, portfolio and brand page.
 
-## Stack
+## Problem
 
-- Static HTML/CSS/vanilla JS
-- Served by [Caddy](https://caddyserver.com/) (automatic HTTPS) inside Docker
+I needed a real, professional home online: a place that presents who I am and what I do, links out to my other projects, and can host small extras (like a privacy policy page for another project) without depending on a third-party platform.
+
+## Solution
+
+A minimal static site (no build step, no framework) with a small client-side i18n layer, deployed behind [Caddy](https://caddyserver.com/) in Docker for automatic HTTPS. Easy to edit, fast to load, cheap to run.
 
 ## Structure
 
-- `index.html`, `css/`, `js/` — the main site
-- `amazon-price-tracker/policy/` — privacy policy page for the [Amazon Price Tracker](https://github.com/choncotm/amazon-price-tracker-bot) Telegram bot
-- `Caddyfile`, `Dockerfile`, `docker-compose.yml` — deployment
+```
+.
+├── index.html                        # main page
+├── css/
+│   ├── base.css                      # shared base styles
+│   ├── home.css                      # homepage styles
+│   └── policy.css                    # privacy policy page styles
+├── js/
+│   ├── i18n.js                       # language switcher (FR/EN/PT/ES/RU/DE)
+│   └── main.js                       # scroll-reveal animation
+├── amazon-price-tracker/
+│   └── policy/index.html             # privacy policy for the Amazon Price Tracker bot
+├── Caddyfile                         # reverse proxy / HTTPS config
+├── Dockerfile
+└── docker-compose.yml
+```
 
 ## Running locally
 
