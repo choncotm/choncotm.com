@@ -194,7 +194,8 @@ a {
   border-top: 1px solid var(--gold-soft);
 }
 
-.tree a {
+.tree a,
+.tree summary {
   display: block;
   font-family: var(--serif);
   font-size: 0.85rem;
@@ -207,9 +208,63 @@ a {
   transition: border-color 0.2s ease, color 0.2s ease;
 }
 
-.tree a:hover {
+.tree a:hover,
+.tree summary:hover {
   border-color: var(--gold);
   color: var(--gold);
+}
+
+/* collapsible "Projets" branch */
+
+.tree summary {
+  cursor: pointer;
+  list-style: none;
+  position: relative;
+  padding-right: 2.2rem;
+}
+
+.tree summary::-webkit-details-marker {
+  display: none;
+}
+
+.tree summary::after {
+  content: "›";
+  position: absolute;
+  right: 0.9rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--ink-dim);
+  transition: transform 0.2s ease;
+}
+
+.tree details[open] > summary::after {
+  transform: translateY(-50%) rotate(90deg);
+}
+
+/* scrollable "carousel": shows ~3 projects, scroll for the rest */
+
+.tree-scroll {
+  max-height: 9.5rem;
+  overflow-y: auto;
+  scroll-snap-type: y proximity;
+  padding-right: 0.3rem;
+}
+
+.tree-scroll li {
+  scroll-snap-align: start;
+}
+
+.tree-scroll::-webkit-scrollbar {
+  width: 5px;
+}
+
+.tree-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.tree-scroll::-webkit-scrollbar-thumb {
+  background: var(--gold-soft);
+  border-radius: 3px;
 }
 
 /* --- scroll reveal --- */
@@ -333,8 +388,13 @@ a {
     gap: 1.1rem;
   }
 
-  .tree a {
+  .tree a,
+  .tree summary {
     font-size: 0.8rem;
     padding: 0.45rem 0.85rem;
+  }
+
+  .tree summary {
+    padding-right: 2rem;
   }
 }
