@@ -347,6 +347,8 @@ a {
 /* --- content sections --- */
 
 .projets,
+.clients,
+.collaborateurs,
 .contact {
   max-width: 720px;
   margin: 0 auto;
@@ -355,9 +357,39 @@ a {
 }
 
 .projets h2,
+.clients h2,
+.collaborateurs h2,
 .contact h2 {
   font-size: 1.6rem;
   letter-spacing: 0.04em;
+}
+
+.clients p {
+  color: var(--ink-dim);
+  line-height: 1.7;
+}
+
+.collab-card {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+  border: 2px solid rgba(201, 162, 39, 0.45);
+  padding: 1.5rem 2rem;
+  text-align: left;
+}
+
+.collab-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid var(--gold-soft);
+  flex-shrink: 0;
+}
+
+.collab-info h3 {
+  font-size: 1.05rem;
+  margin-bottom: 0.5rem;
 }
 
 .project-card {
