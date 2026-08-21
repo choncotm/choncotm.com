@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Démo — Connexion Telegram — Amazon Price Tracker Bot</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="/img/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/css/base.css">
+<link rel="stylesheet" href="/css/policy.css">
+<style>
+  .widget-box {
+    margin: 2rem 0;
+    padding: 1.5rem;
+    border: 1px solid rgba(245, 245, 245, 0.15);
+    border-radius: 8px;
+    text-align: center;
+  }
+  pre#result {
+    margin-top: 1.5rem;
+    padding: 1rem;
+    background: rgba(245, 245, 245, 0.06);
+    border-radius: 6px;
+    overflow-x: auto;
+    white-space: pre-wrap;
+    word-break: break-word;
+    display: none;
+  }
+  .note {
+    font-size: 0.9rem;
+    opacity: 0.75;
+  }
+</style>
+</head>
+<body>
+<main>
+
+<a class="back-link" href="/">&larr; Retour à choncotm.com</a>
+
+<h1>Démo — Connexion avec Telegram</h1>
+<p class="note">Page de test pour voir à quoi ressemble le Telegram Login Widget avec <strong>@AmazonPricesTracker_bot</strong>, et quelles données il renvoie une fois connecté.</p>
+
+<div class="widget-box">
+  <script async src="https://telegram.org/js/telegram-widget.js?22"
+    data-telegram-login="AmazonPricesTracker_bot"
+    data-size="large"
+    data-radius="8"
+    data-onauth="onTelegramAuth(user)"
+    data-request-access="write"></script>
+</div>
+
+<pre id="result"></pre>
+
+<p class="note">Rien ne se passe si tu cliques ? Le domaine de cette page doit d'abord être autorisé pour le bot via BotFather (<code>/setdomain</code>) — sans ça Telegram refuse le widget.</p>
+
+<script>
+  function onTelegramAuth(user) {
+    const box = document.getElementById("result");
+    box.textContent = JSON.stringify(user, null, 2);
+    box.style.display = "block";
+  }
+</script>
+
+</main>
+</body>
+</html>
