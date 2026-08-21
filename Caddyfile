@@ -24,7 +24,7 @@ choncotm.com {
 		reverse_proxy stats-api:8000
 	}
 
-	handle /amazon-price-tracker/app/api/* {
+	handle_path /amazon-price-tracker/app/api/* {
 		reverse_proxy bot-webapp:8001
 	}
 
