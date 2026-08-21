@@ -7,110 +7,363 @@
 <meta name="robots" content="noindex">
 <link rel="canonical" href="https://choncotm.com/amazon-price-tracker/app/">
 <link rel="icon" href="/img/favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="/css/base.css">
-<link rel="stylesheet" href="/css/policy.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-  .widget-box {
-    margin: 2rem 0;
-    padding: 1.5rem;
-    border: 1px solid rgba(245, 245, 245, 0.15);
-    border-radius: 8px;
-    text-align: center;
+  :root {
+    --bg: #0a0a0a;
+    --bg-alt: #141311;
+    --ink: #ece7db;
+    --ink-dim: #a39d8f;
+    --gold: #c9a227;
+    --gold-soft: rgba(201, 162, 39, 0.35);
+    --gold-faint: rgba(201, 162, 39, 0.12);
+    --red: #c9503f;
+    --serif: "Playfair Display", Georgia, "Iowan Old Style", serif;
+    --sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--sans);
+  }
+
+  a { color: var(--gold); }
+
+  header.topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.4rem 1.8rem;
+    border-bottom: 1px solid var(--gold-faint);
+  }
+
+  .back-link {
+    color: var(--ink-dim);
+    text-decoration: none;
+    font-size: 0.85rem;
+  }
+  .back-link:hover { color: var(--gold); }
+
+  .brand {
+    font-family: var(--serif);
+    letter-spacing: 0.06em;
+    font-size: 1rem;
+    color: var(--ink);
+  }
+
+  main {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 3rem 1.5rem 5rem;
+  }
+
+  h1 {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: 2rem;
+    margin: 0 0 0.4rem;
+    letter-spacing: 0.01em;
+  }
+
+  .lede {
+    color: var(--ink-dim);
+    line-height: 1.6;
+    margin: 0 0 2rem;
+    max-width: 42em;
+  }
+
+  /* --- login --- */
+
+  #login-box {
+    border: 1px solid var(--gold-soft);
+    border-radius: 4px;
+    padding: 2.5rem 2rem;
+    text-align: center;
+    background: var(--bg-alt);
+  }
+
+  #login-box p {
+    color: var(--ink-dim);
+    line-height: 1.6;
+    max-width: 32em;
+    margin: 0 auto 1.5rem;
+  }
+
+  #login-box strong { color: var(--ink); }
+
+  /* --- stats strip --- */
+
+  .stats {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-bottom: 2rem;
+  }
+
+  .stat-tile {
+    flex: 1;
+    min-width: 140px;
+    border: 1px solid var(--gold-soft);
+    border-radius: 4px;
+    padding: 1rem 1.2rem;
+  }
+
+  .stat-tile .value {
+    font-family: var(--serif);
+    font-size: 1.6rem;
+    color: var(--gold);
+    line-height: 1.2;
+  }
+
+  .stat-tile .label {
+    font-size: 0.78rem;
+    color: var(--ink-dim);
+    letter-spacing: 0.03em;
+    margin-top: 0.2rem;
+  }
+
+  /* --- toolbar --- */
+
   .toolbar {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 1rem;
     flex-wrap: wrap;
-    margin-bottom: 1.5rem;
+    margin-bottom: 1.8rem;
+    padding-bottom: 1.4rem;
+    border-bottom: 1px solid var(--gold-faint);
   }
-  .toolbar select, .toolbar button {
-    font-size: 0.9rem;
-    padding: 0.4rem 0.7rem;
-    border-radius: 6px;
-    border: 1px solid rgba(245, 245, 245, 0.25);
+
+  .toolbar label {
+    font-size: 0.8rem;
+    color: var(--ink-dim);
+    margin-right: 0.5rem;
+  }
+
+  select, .btn {
+    font-family: var(--sans);
+    font-size: 0.85rem;
+    padding: 0.45rem 0.9rem;
+    border-radius: 3px;
+    border: 1px solid var(--gold-soft);
     background: transparent;
-    color: inherit;
+    color: var(--ink);
     cursor: pointer;
+    transition: border-color 0.2s ease, background 0.2s ease;
   }
+
+  select:hover, select:focus, .btn:hover { border-color: var(--gold); outline: none; }
+
+  .btn-primary {
+    background: var(--gold);
+    color: var(--bg);
+    border-color: var(--gold);
+    font-weight: 600;
+  }
+  .btn-primary:hover { background: #ddb43a; }
+
+  /* --- products --- */
+
   .product {
     display: flex;
-    gap: 1rem;
-    padding: 1rem;
+    gap: 1.1rem;
+    padding: 1.2rem;
     margin-bottom: 1rem;
-    border: 1px solid rgba(245, 245, 245, 0.15);
-    border-radius: 8px;
+    border: 1px solid var(--gold-soft);
+    border-radius: 4px;
     align-items: flex-start;
+    transition: border-color 0.2s ease;
   }
+  .product:hover { border-color: var(--gold); }
+
   .product img {
-    width: 64px;
-    height: 64px;
+    width: 60px;
+    height: 60px;
     object-fit: contain;
     background: #fff;
-    border-radius: 4px;
+    border-radius: 3px;
     flex-shrink: 0;
   }
+  .product .img-placeholder {
+    width: 60px;
+    height: 60px;
+    border-radius: 3px;
+    background: var(--gold-faint);
+    flex-shrink: 0;
+  }
+
   .product .info { flex: 1; min-width: 0; }
+
   .product .title {
-    font-weight: 600;
-    margin: 0 0 0.3rem;
+    font-family: var(--serif);
+    font-size: 1.02rem;
+    margin: 0 0 0.35rem;
     overflow-wrap: anywhere;
   }
-  .product .price { opacity: 0.85; margin: 0 0 0.6rem; }
-  .product .actions { display: flex; gap: 0.6rem; flex-wrap: wrap; }
-  .product .actions a, .product .actions button {
-    font-size: 0.85rem;
-    padding: 0.3rem 0.6rem;
-    border-radius: 6px;
-    border: 1px solid rgba(245, 245, 245, 0.25);
-    background: transparent;
-    color: inherit;
+
+  .product .price {
+    color: var(--gold);
+    font-weight: 600;
+    margin: 0 0 0.7rem;
+    font-size: 0.95rem;
+  }
+
+  .product .actions { display: flex; gap: 1.2rem; flex-wrap: wrap; align-items: center; }
+
+  .link-btn {
+    background: none;
+    border: none;
+    padding: 0;
+    font-family: var(--sans);
+    font-size: 0.82rem;
+    color: var(--ink-dim);
     text-decoration: none;
     cursor: pointer;
+    border-bottom: 1px solid transparent;
   }
-  .product .actions .delete { border-color: rgba(220, 90, 90, 0.5); }
+  .link-btn:hover { color: var(--gold); border-bottom-color: var(--gold); }
+  .link-btn.danger:hover { color: var(--red); border-bottom-color: var(--red); }
+
   .history-box {
-    margin-top: 0.8rem;
-    padding-top: 0.6rem;
-    border-top: 1px solid rgba(245, 245, 245, 0.1);
-    font-size: 0.85rem;
-    display: none;
+    margin-top: 0.9rem;
+    padding-left: 0.9rem;
+    border-left: 1px solid var(--gold-soft);
+    font-size: 0.82rem;
+    color: var(--ink-dim);
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
   }
-  .history-box.open { display: block; }
-  .history-box div { margin-bottom: 0.3rem; }
-  .empty, .note { opacity: 0.75; font-size: 0.9rem; }
-  .add-card {
-    margin-top: 2rem;
-    padding: 1rem 1.5rem;
-    border: 1px dashed rgba(245, 245, 245, 0.25);
-    border-radius: 8px;
+  .history-box.open { max-height: 400px; overflow-y: auto; }
+  .history-box div { margin-bottom: 0.4rem; }
+  .history-box .up { color: #7fae6a; }
+  .history-box .down { color: var(--gold); }
+
+  /* --- empty / add card --- */
+
+  .empty-card, .add-card {
+    border: 1px dashed var(--gold-soft);
+    border-radius: 4px;
+    padding: 2rem;
+    text-align: center;
+    color: var(--ink-dim);
+  }
+
+  .add-card { margin-top: 2rem; }
+  .add-card p { margin: 0 0 1rem; line-height: 1.6; }
+
+  /* --- skeleton --- */
+
+  .skeleton {
+    height: 90px;
+    border-radius: 4px;
+    margin-bottom: 1rem;
+    background: linear-gradient(90deg, var(--bg-alt) 25%, rgba(201,162,39,0.08) 50%, var(--bg-alt) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.4s infinite;
+  }
+  @keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+
+  /* --- fade in --- */
+
+  .fade-in { animation: fadeIn 0.35s ease; }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  #app { display: none; }
+
+  /* --- toasts --- */
+
+  #toasts {
+    position: fixed;
+    bottom: 1.2rem;
+    right: 1.2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    z-index: 50;
+  }
+
+  .toast {
+    background: var(--bg-alt);
+    border: 1px solid var(--gold-soft);
+    border-radius: 4px;
+    padding: 0.7rem 1.1rem;
+    font-size: 0.85rem;
+    max-width: 300px;
+    animation: fadeIn 0.25s ease;
+  }
+  .toast.error { border-color: var(--red); color: #e3a89c; }
+
+  /* --- confirm modal --- */
+
+  #modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 60;
+  }
+  #modal-overlay.open { display: flex; }
+
+  #modal-box {
+    background: var(--bg-alt);
+    border: 1px solid var(--gold-soft);
+    border-radius: 4px;
+    padding: 1.8rem;
+    max-width: 320px;
     text-align: center;
   }
-  #app { display: none; }
+  #modal-box p { color: var(--ink); line-height: 1.6; margin: 0 0 1.4rem; }
+  #modal-box .modal-actions { display: flex; gap: 0.8rem; justify-content: center; }
+
+  @media (max-width: 480px) {
+    .product { flex-direction: column; }
+  }
 </style>
 </head>
 <body>
+
+<header class="topbar">
+  <a class="back-link" href="/">&larr; choncotm.com</a>
+  <span class="brand">Amazon Price Tracker</span>
+</header>
+
 <main>
 
-<a class="back-link" href="/">&larr; Retour à choncotm.com</a>
-
 <h1>Gérer mes produits suivis</h1>
+<p class="lede">Consulte, mets à jour et supprime les produits que tu suis avec <strong>@AmazonPricesTracker_bot</strong>, directement depuis le web.</p>
 
-<div id="login-box" class="widget-box">
-  <p class="note">Connecte-toi avec Telegram pour voir et gérer les produits que tu suis avec <strong>@AmazonPricesTracker_bot</strong>.</p>
+<div id="login-box">
+  <p>Connecte-toi avec Telegram pour accéder à tes produits suivis.</p>
   <script async src="https://telegram.org/js/telegram-widget.js?22"
     data-telegram-login="AmazonPricesTracker_bot"
     data-size="large"
-    data-radius="8"
+    data-radius="4"
     data-onauth="onTelegramAuth(user)"
     data-request-access="write"></script>
 </div>
 
 <div id="app">
+  <div class="stats" id="stats"></div>
+
   <div class="toolbar">
     <div>
-      <label class="note" for="lang-select">🌐 Langue :</label>
+      <label for="lang-select">🌐 Langue</label>
       <select id="lang-select">
         <option value="fr">Français</option>
         <option value="en">English</option>
@@ -120,14 +373,32 @@
         <option value="ru">Русский</option>
       </select>
     </div>
-    <button id="logout-btn">Se déconnecter</button>
+    <button class="btn" id="logout-btn">Se déconnecter</button>
   </div>
 
-  <div id="products"></div>
+  <div id="products">
+    <div class="skeleton"></div>
+    <div class="skeleton"></div>
+    <div class="skeleton"></div>
+  </div>
 
   <div class="add-card">
-    <p class="note">Pour suivre un nouveau produit, colle son lien Amazon directement dans le bot Telegram.</p>
-    <a href="https://t.me/AmazonPricesTracker_bot" target="_blank" rel="noopener">Ouvrir le bot &rarr;</a>
+    <p>Pour suivre un nouveau produit, colle son lien Amazon directement dans le bot Telegram.</p>
+    <a class="btn btn-primary" href="https://t.me/AmazonPricesTracker_bot" target="_blank" rel="noopener">Ouvrir le bot &rarr;</a>
+  </div>
+</div>
+
+</main>
+
+<div id="toasts"></div>
+
+<div id="modal-overlay">
+  <div id="modal-box">
+    <p id="modal-text"></p>
+    <div class="modal-actions">
+      <button class="btn" id="modal-cancel">Annuler</button>
+      <button class="btn btn-primary" id="modal-confirm">Supprimer</button>
+    </div>
   </div>
 </div>
 
@@ -144,47 +415,104 @@
     return res.status === 204 ? null : res.json();
   }
 
+  function toast(message, type = "info") {
+    const el = document.createElement("div");
+    el.className = `toast${type === "error" ? " error" : ""}`;
+    el.textContent = message;
+    document.getElementById("toasts").appendChild(el);
+    setTimeout(() => el.remove(), 3500);
+  }
+
+  function confirmDialog(message) {
+    return new Promise((resolve) => {
+      const overlay = document.getElementById("modal-overlay");
+      document.getElementById("modal-text").textContent = message;
+      overlay.classList.add("open");
+
+      const cleanup = (result) => {
+        overlay.classList.remove("open");
+        confirmBtn.removeEventListener("click", onConfirm);
+        cancelBtn.removeEventListener("click", onCancel);
+        resolve(result);
+      };
+      const confirmBtn = document.getElementById("modal-confirm");
+      const cancelBtn = document.getElementById("modal-cancel");
+      const onConfirm = () => cleanup(true);
+      const onCancel = () => cleanup(false);
+      confirmBtn.addEventListener("click", onConfirm);
+      cancelBtn.addEventListener("click", onCancel);
+    });
+  }
+
+  function renderStats(products) {
+    const total = products.length;
+    const value = products.reduce((sum, p) => sum + (p.price || 0), 0);
+    const currency = products[0]?.currency || "EUR";
+    document.getElementById("stats").innerHTML = `
+      <div class="stat-tile">
+        <div class="value">${total}</div>
+        <div class="label">produit${total === 1 ? "" : "s"} suivi${total === 1 ? "" : "s"}</div>
+      </div>
+      <div class="stat-tile">
+        <div class="value">${value.toFixed(2)} ${currency}</div>
+        <div class="label">valeur totale suivie</div>
+      </div>
+    `;
+  }
+
   function productCard(p) {
     const price = p.price != null ? `${p.price.toFixed(2)} ${p.currency || "EUR"}` : "?";
     const div = document.createElement("div");
-    div.className = "product";
+    div.className = "product fade-in";
     div.innerHTML = `
-      ${p.image_url ? `<img src="${p.image_url}" alt="">` : ""}
+      ${p.image_url ? `<img src="${p.image_url}" alt="">` : `<div class="img-placeholder"></div>`}
       <div class="info">
         <p class="title">${p.title || p.link}</p>
         <p class="price">💰 ${price}</p>
         <div class="actions">
-          <a href="${p.link}" target="_blank" rel="noopener">🔗 Voir sur Amazon</a>
-          <button class="history-toggle">📈 Historique</button>
-          <button class="delete">❌ Supprimer</button>
+          <a class="link-btn" href="${p.link}" target="_blank" rel="noopener">🔗 Voir sur Amazon</a>
+          <button class="link-btn history-toggle">📈 Historique</button>
+          <button class="link-btn danger delete">✕ Supprimer</button>
         </div>
         <div class="history-box"></div>
       </div>
     `;
 
     div.querySelector(".delete").addEventListener("click", async () => {
-      if (!confirm("Supprimer ce produit du suivi ?")) return;
-      await api(`/products/${p.id}`, { method: "DELETE" });
-      div.remove();
+      const ok = await confirmDialog(`Supprimer « ${p.title || "ce produit"} » du suivi ?`);
+      if (!ok) return;
+      try {
+        await api(`/products/${p.id}`, { method: "DELETE" });
+        div.remove();
+        toast("Produit supprimé.");
+      } catch (e) {
+        toast("Impossible de supprimer ce produit.", "error");
+      }
     });
 
-    div.querySelector(".history-toggle").addEventListener("click", async (e) => {
+    div.querySelector(".history-toggle").addEventListener("click", async () => {
       const box = div.querySelector(".history-box");
       const open = box.classList.toggle("open");
       if (open && !box.dataset.loaded) {
-        const data = await api(`/products/${p.id}/history`);
-        box.dataset.loaded = "1";
-        if (!data.history.length) {
-          box.innerHTML = "<div>Aucun changement de prix pour l'instant.</div>";
-          return;
+        try {
+          const data = await api(`/products/${p.id}/history`);
+          box.dataset.loaded = "1";
+          if (!data.history.length) {
+            box.innerHTML = "<div>Aucun changement de prix pour l'instant.</div>";
+            return;
+          }
+          box.innerHTML = data.history
+            .map((h) => {
+              const rising = h.new_price > h.old_price;
+              const cls = rising ? "up" : "down";
+              const sign = rising ? "▲" : "▼";
+              const date = h.checked_at ? new Date(h.checked_at).toLocaleString("fr-FR") : "";
+              return `<div class="${cls}">${date} — ${sign} ${h.old_price.toFixed(2)} → ${h.new_price.toFixed(2)}</div>`;
+            })
+            .join("");
+        } catch (e) {
+          toast("Impossible de charger l'historique.", "error");
         }
-        box.innerHTML = data.history
-          .map((h) => {
-            const sign = h.new_price > h.old_price ? "+" : "-";
-            const date = h.checked_at ? new Date(h.checked_at).toLocaleString("fr-FR") : "";
-            return `<div>${date} : ${sign} ${h.old_price.toFixed(2)} -> ${h.new_price.toFixed(2)}</div>`;
-          })
-          .join("");
       }
     });
 
@@ -193,18 +521,25 @@
 
   async function loadProducts() {
     const list = document.getElementById("products");
-    list.innerHTML = "";
-    const products = await api("/products");
-    if (!products.length) {
-      list.innerHTML = '<p class="empty">Tu ne suis aucun produit pour l\'instant.</p>';
-      return;
+    try {
+      const products = await api("/products");
+      renderStats(products);
+      list.innerHTML = "";
+      if (!products.length) {
+        list.innerHTML = '<div class="empty-card">Tu ne suis aucun produit pour l\'instant.</div>';
+        return;
+      }
+      products.forEach((p) => list.appendChild(productCard(p)));
+    } catch (e) {
+      list.innerHTML = '<div class="empty-card">Impossible de charger tes produits pour le moment.</div>';
     }
-    products.forEach((p) => list.appendChild(productCard(p)));
   }
 
   async function showApp(language) {
     document.getElementById("login-box").style.display = "none";
-    document.getElementById("app").style.display = "block";
+    const app = document.getElementById("app");
+    app.style.display = "block";
+    app.classList.add("fade-in");
     document.getElementById("lang-select").value = language;
     await loadProducts();
   }
@@ -214,7 +549,7 @@
       const data = await api("/auth/telegram", { method: "POST", body: JSON.stringify(user) });
       await showApp(data.language);
     } catch (e) {
-      alert("Connexion refusée par Telegram. Réessaie.");
+      toast("Connexion refusée par Telegram. Réessaie.", "error");
     }
   }
 
@@ -224,7 +559,12 @@
   });
 
   document.getElementById("lang-select").addEventListener("change", async (e) => {
-    await api("/language", { method: "POST", body: JSON.stringify({ language: e.target.value }) });
+    try {
+      await api("/language", { method: "POST", body: JSON.stringify({ language: e.target.value }) });
+      toast("Langue mise à jour.");
+    } catch (err) {
+      toast("Impossible de changer la langue.", "error");
+    }
   });
 
   api("/me")
@@ -232,6 +572,5 @@
     .catch(() => {});
 </script>
 
-</main>
 </body>
 </html>
