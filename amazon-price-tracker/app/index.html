@@ -243,10 +243,27 @@
     overflow: hidden;
     transition: max-height 0.3s ease;
   }
-  .history-box.open { max-height: 400px; overflow-y: auto; }
-  .history-box div { margin-bottom: 0.4rem; }
-  .history-box .up { color: #7fae6a; }
-  .history-box .down { color: var(--gold); }
+  .history-box.open { max-height: 480px; overflow-y: auto; }
+  .history-entries div { margin-bottom: 0.4rem; }
+  .history-entries .up { color: #7fae6a; }
+  .history-entries .down { color: var(--gold); }
+  .history-entries .dir-label { font-weight: 600; }
+
+  .history-chart {
+    margin: 0.4rem 0 1rem;
+  }
+  .history-chart svg { width: 100%; height: 80px; display: block; overflow: visible; }
+  .history-chart .chart-line {
+    fill: none;
+    stroke: var(--gold);
+    stroke-width: 1.5;
+  }
+  .history-chart .chart-area {
+    fill: var(--gold-faint);
+    stroke: none;
+  }
+  .history-chart .chart-point.up { fill: #7fae6a; }
+  .history-chart .chart-point.down { fill: var(--gold); }
 
   /* --- empty / add card --- */
 
@@ -462,6 +479,42 @@
     `;
   }
 
+  function historyChart(history) {
+    const points = [history[0].old_price, ...history.map((h) => h.new_price)];
+    const min = Math.min(...points);
+    const max = Math.max(...points);
+    const pad = (max - min) * 0.1 || 1;
+    const lo = min - pad;
+    const hi = max + pad;
+
+    const w = 300;
+    const h = 80;
+    const step = points.length > 1 ? w / (points.length - 1) : 0;
+    const y = (v) => h - ((v - lo) / (hi - lo)) * h;
+    const coords = points.map((v, i) => [i * step, y(v)]);
+
+    const linePath = coords.map(([x, y], i) => `${i === 0 ? "M" : "L"}${x.toFixed(1)},${y.toFixed(1)}`).join(" ");
+    const areaPath = `${linePath} L${coords[coords.length - 1][0].toFixed(1)},${h} L0,${h} Z`;
+
+    const dots = coords
+      .slice(1)
+      .map(([x, y], i) => {
+        const rising = history[i].new_price > history[i].old_price;
+        return `<circle class="chart-point ${rising ? "up" : "down"}" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="2.5"></circle>`;
+      })
+      .join("");
+
+    return `
+      <div class="history-chart">
+        <svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">
+          <path class="chart-area" d="${areaPath}"></path>
+          <path class="chart-line" d="${linePath}"></path>
+          ${dots}
+        </svg>
+      </div>
+    `;
+  }
+
   function productCard(p) {
     const price = p.price != null ? `${p.price.toFixed(2)} ${p.currency || "EUR"}` : "?";
     const div = document.createElement("div");
@@ -503,15 +556,17 @@
             box.innerHTML = "<div>Aucun changement de prix pour l'instant.</div>";
             return;
           }
-          box.innerHTML = data.history
+          const rows = data.history
             .map((h) => {
               const rising = h.new_price > h.old_price;
               const cls = rising ? "up" : "down";
               const sign = rising ? "▲" : "▼";
+              const label = rising ? "Hausse" : "Baisse";
               const date = h.checked_at ? new Date(h.checked_at).toLocaleString("fr-FR") : "";
-              return `<div class="${cls}">${date} — ${sign} ${h.old_price.toFixed(2)} → ${h.new_price.toFixed(2)}</div>`;
+              return `<div class="${cls}">${date} — <span class="dir-label">${sign} ${label}</span> · ${h.old_price.toFixed(2)} → ${h.new_price.toFixed(2)}</div>`;
             })
             .join("");
+          box.innerHTML = historyChart(data.history) + `<div class="history-entries">${rows}</div>`;
         } catch (e) {
           toast("Impossible de charger l'historique.", "error");
         }
