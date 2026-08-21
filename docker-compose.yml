@@ -11,6 +11,9 @@ services:
       - caddy_config:/config
     depends_on:
       - stats-api
+    networks:
+      - default
+      - bot-stats-net
 
   stats-db:
     image: postgres:16-alpine

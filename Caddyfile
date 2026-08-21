@@ -24,6 +24,10 @@ choncotm.com {
 		reverse_proxy stats-api:8000
 	}
 
+	handle /amazon-price-tracker/app/api/* {
+		reverse_proxy bot-webapp:8001
+	}
+
 	handle /admin* {
 		header Cache-Control "no-store"
 		reverse_proxy stats-api:8000

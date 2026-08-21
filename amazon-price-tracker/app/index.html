@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gérer mes produits — Amazon Price Tracker Bot</title>
+<meta name="robots" content="noindex">
+<link rel="canonical" href="https://choncotm.com/amazon-price-tracker/app/">
+<link rel="icon" href="/img/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/css/base.css">
+<link rel="stylesheet" href="/css/policy.css">
+<style>
+  .widget-box {
+    margin: 2rem 0;
+    padding: 1.5rem;
+    border: 1px solid rgba(245, 245, 245, 0.15);
+    border-radius: 8px;
+    text-align: center;
+  }
+  .toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.5rem;
+  }
+  .toolbar select, .toolbar button {
+    font-size: 0.9rem;
+    padding: 0.4rem 0.7rem;
+    border-radius: 6px;
+    border: 1px solid rgba(245, 245, 245, 0.25);
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+  }
+  .product {
+    display: flex;
+    gap: 1rem;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border: 1px solid rgba(245, 245, 245, 0.15);
+    border-radius: 8px;
+    align-items: flex-start;
+  }
+  .product img {
+    width: 64px;
+    height: 64px;
+    object-fit: contain;
+    background: #fff;
+    border-radius: 4px;
+    flex-shrink: 0;
+  }
+  .product .info { flex: 1; min-width: 0; }
+  .product .title {
+    font-weight: 600;
+    margin: 0 0 0.3rem;
+    overflow-wrap: anywhere;
+  }
+  .product .price { opacity: 0.85; margin: 0 0 0.6rem; }
+  .product .actions { display: flex; gap: 0.6rem; flex-wrap: wrap; }
+  .product .actions a, .product .actions button {
+    font-size: 0.85rem;
+    padding: 0.3rem 0.6rem;
+    border-radius: 6px;
+    border: 1px solid rgba(245, 245, 245, 0.25);
+    background: transparent;
+    color: inherit;
+    text-decoration: none;
+    cursor: pointer;
+  }
+  .product .actions .delete { border-color: rgba(220, 90, 90, 0.5); }
+  .history-box {
+    margin-top: 0.8rem;
+    padding-top: 0.6rem;
+    border-top: 1px solid rgba(245, 245, 245, 0.1);
+    font-size: 0.85rem;
+    display: none;
+  }
+  .history-box.open { display: block; }
+  .history-box div { margin-bottom: 0.3rem; }
+  .empty, .note { opacity: 0.75; font-size: 0.9rem; }
+  .add-card {
+    margin-top: 2rem;
+    padding: 1rem 1.5rem;
+    border: 1px dashed rgba(245, 245, 245, 0.25);
+    border-radius: 8px;
+    text-align: center;
+  }
+  #app { display: none; }
+</style>
+</head>
+<body>
+<main>
+
+<a class="back-link" href="/">&larr; Retour à choncotm.com</a>
+
+<h1>Gérer mes produits suivis</h1>
+
+<div id="login-box" class="widget-box">
+  <p class="note">Connecte-toi avec Telegram pour voir et gérer les produits que tu suis avec <strong>@AmazonPricesTracker_bot</strong>.</p>
+  <script async src="https://telegram.org/js/telegram-widget.js?22"
+    data-telegram-login="AmazonPricesTracker_bot"
+    data-size="large"
+    data-radius="8"
+    data-onauth="onTelegramAuth(user)"
+    data-request-access="write"></script>
+</div>
+
+<div id="app">
+  <div class="toolbar">
+    <div>
+      <label class="note" for="lang-select">🌐 Langue :</label>
+      <select id="lang-select">
+        <option value="fr">Français</option>
+        <option value="en">English</option>
+        <option value="es">Español</option>
+        <option value="de">Deutsch</option>
+        <option value="pt">Português</option>
+        <option value="ru">Русский</option>
+      </select>
+    </div>
+    <button id="logout-btn">Se déconnecter</button>
+  </div>
+
+  <div id="products"></div>
+
+  <div class="add-card">
+    <p class="note">Pour suivre un nouveau produit, colle son lien Amazon directement dans le bot Telegram.</p>
+    <a href="https://t.me/AmazonPricesTracker_bot" target="_blank" rel="noopener">Ouvrir le bot &rarr;</a>
+  </div>
+</div>
+
+<script>
+  const API = "api";
+
+  async function api(path, options) {
+    const res = await fetch(`${API}${path}`, {
+      credentials: "same-origin",
+      headers: { "Content-Type": "application/json" },
+      ...options,
+    });
+    if (!res.ok) throw new Error(`${res.status}`);
+    return res.status === 204 ? null : res.json();
+  }
+
+  function productCard(p) {
+    const price = p.price != null ? `${p.price.toFixed(2)} ${p.currency || "EUR"}` : "?";
+    const div = document.createElement("div");
+    div.className = "product";
+    div.innerHTML = `
+      ${p.image_url ? `<img src="${p.image_url}" alt="">` : ""}
+      <div class="info">
+        <p class="title">${p.title || p.link}</p>
+        <p class="price">💰 ${price}</p>
+        <div class="actions">
+          <a href="${p.link}" target="_blank" rel="noopener">🔗 Voir sur Amazon</a>
+          <button class="history-toggle">📈 Historique</button>
+          <button class="delete">❌ Supprimer</button>
+        </div>
+        <div class="history-box"></div>
+      </div>
+    `;
+
+    div.querySelector(".delete").addEventListener("click", async () => {
+      if (!confirm("Supprimer ce produit du suivi ?")) return;
+      await api(`/products/${p.id}`, { method: "DELETE" });
+      div.remove();
+    });
+
+    div.querySelector(".history-toggle").addEventListener("click", async (e) => {
+      const box = div.querySelector(".history-box");
+      const open = box.classList.toggle("open");
+      if (open && !box.dataset.loaded) {
+        const data = await api(`/products/${p.id}/history`);
+        box.dataset.loaded = "1";
+        if (!data.history.length) {
+          box.innerHTML = "<div>Aucun changement de prix pour l'instant.</div>";
+          return;
+        }
+        box.innerHTML = data.history
+          .map((h) => {
+            const sign = h.new_price > h.old_price ? "+" : "-";
+            const date = h.checked_at ? new Date(h.checked_at).toLocaleString("fr-FR") : "";
+            return `<div>${date} : ${sign} ${h.old_price.toFixed(2)} -> ${h.new_price.toFixed(2)}</div>`;
+          })
+          .join("");
+      }
+    });
+
+    return div;
+  }
+
+  async function loadProducts() {
+    const list = document.getElementById("products");
+    list.innerHTML = "";
+    const products = await api("/products");
+    if (!products.length) {
+      list.innerHTML = '<p class="empty">Tu ne suis aucun produit pour l\'instant.</p>';
+      return;
+    }
+    products.forEach((p) => list.appendChild(productCard(p)));
+  }
+
+  async function showApp(language) {
+    document.getElementById("login-box").style.display = "none";
+    document.getElementById("app").style.display = "block";
+    document.getElementById("lang-select").value = language;
+    await loadProducts();
+  }
+
+  async function onTelegramAuth(user) {
+    try {
+      const data = await api("/auth/telegram", { method: "POST", body: JSON.stringify(user) });
+      await showApp(data.language);
+    } catch (e) {
+      alert("Connexion refusée par Telegram. Réessaie.");
+    }
+  }
+
+  document.getElementById("logout-btn").addEventListener("click", async () => {
+    await api("/logout", { method: "POST" });
+    location.reload();
+  });
+
+  document.getElementById("lang-select").addEventListener("change", async (e) => {
+    await api("/language", { method: "POST", body: JSON.stringify({ language: e.target.value }) });
+  });
+
+  api("/me")
+    .then((data) => showApp(data.language))
+    .catch(() => {});
+</script>
+
+</main>
+</body>
+</html>
