@@ -32,6 +32,7 @@ services:
 
   stats-api:
     build: ./admin
+    container_name: choncotm-stats-api
     restart: unless-stopped
     env_file:
       - .env

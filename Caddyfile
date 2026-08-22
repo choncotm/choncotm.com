@@ -21,7 +21,7 @@ choncotm.com {
 	header @static Cache-Control "no-cache"
 
 	handle /api/* {
-		reverse_proxy stats-api:8000
+		reverse_proxy choncotm-stats-api:8000
 	}
 
 	handle_path /amazon-price-tracker/app/api/* {
@@ -30,6 +30,6 @@ choncotm.com {
 
 	handle /admin* {
 		header Cache-Control "no-store"
-		reverse_proxy stats-api:8000
+		reverse_proxy choncotm-stats-api:8000
 	}
 }
